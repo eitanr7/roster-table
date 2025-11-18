@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Node modules (if needed in future)
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# Old version
+roster-table.js
+
