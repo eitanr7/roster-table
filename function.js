@@ -160,16 +160,17 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		return `${hour12}:${minutes} ${ampm}`;
 	}
 
-	// Handle both JSON strings and JavaScript objects
-	const facilitatorsArray = typeof facilitators === 'string' ? JSON.parse(`[${facilitators}]`) : `[${facilitators}]`;
-	
-	const shiftsArray = typeof shifts === 'string' ? JSON.parse(`[${shifts}]`) : `[${shifts}]`;
+	// Handle JSON strings from Glide
+	// Glide sends comma-separated objects without array brackets, so we wrap them
+	const facilitatorsArray = JSON.parse(`[${facilitators}]`);
+	const shiftsArray = JSON.parse(`[${shifts}]`);
 	
 	// Parse locations data if provided
 	let locationsArray = null;
 	if (locationsValue) {
 		try {
-			locationsArray = typeof locationsValue === 'string' ? JSON.parse(`[${locationsValue}]`) : `[${locationsValue}]`;
+			// Glide sends comma-separated objects without array brackets, so we wrap them
+			locationsArray = JSON.parse(`[${locationsValue}]`);
 		} catch (e) {
 			console.error('Failed to parse locations:', e);
 		}
@@ -279,10 +280,10 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	
 	// Add preview shifts for each faculty member in previewFacs
 	if (preview && previewFacilitators) {
-		// Parse preview shift data if it's a JSON string
+		// Parse preview shift data (Glide sends as JSON string)
 		let previewShiftObj = null;
 		try {
-			previewShiftObj = typeof preview === 'string' ? JSON.parse(preview) : preview;
+			previewShiftObj = JSON.parse(preview);
 		} catch (e) {
 			console.error('Failed to parse previewShift:', e);
 		}
