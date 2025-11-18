@@ -13,7 +13,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		}
 		const previewFacilitators = previewFacs.value ?? "";
 		const stateValue = state.value ?? "VIC";
-		// refreshTrigger is just used to force recomputation when needed (not used in logic)
+		// Extract refreshTrigger to ensure Glide tracks it as a dependency
+		const refresh = refreshTrigger?.value ?? 0;
 		
 		// Return undefined if required inputs are missing
 		if (!facilitators || !shifts) {
@@ -345,7 +346,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	
 	// Generate HTML using array for better performance
 	// Fixed width for 7 days + name column (200px + 7*200px = 1600px)
-	const htmlParts = [`<div>
+	const htmlParts = [`<!-- Refresh: ${refresh} -->
+	<div>
 		<table style="${tableStyles.main} width: 1600px;">
 			<tbody>`];
 	
