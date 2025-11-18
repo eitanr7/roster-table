@@ -2,12 +2,12 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	// Extract the .value from each parameter and assign default values for undefined inputs
 	const facilitators = facilitatorsData.value ?? "[]";
 	const shifts = shiftsData.value ?? "[]";
-	const start = startDate.value;
-	const end = endDate.value;
-	const locationsValue = locations.value;
-	const preview = previewShift.value;
+	const start = startDate.value ?? "2027-05-03T00:00:00.000Z";
+	const end = endDate.value ?? "2027-05-09T23:59:00.000Z";
+	const locationsValue = locations.value ?? "";
+	const preview = previewShift.value ?? "";
 	const previewFacilitators = previewFacs.value ?? "";
-	const stateValue = state.value;
+	const stateValue = state.value ?? "VIC";
   
 	// Return undefined if required inputs are missing
 	if (!facilitators || !shifts) {
