@@ -338,15 +338,15 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		return a.rosterOrder.localeCompare(b.rosterOrder);
 	});
 	
+	// Pre-compute today's date string in local timezone (do this before HTML generation)
+	const today = new Date();
+	const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+	
 	// Generate HTML using array for better performance
 	// Fixed width for 7 days + name column (200px + 7*200px = 1600px)
 	const htmlParts = [`<div>
 		<table style="${tableStyles.main} width: 1600px;">
 			<tbody>`];
-	
-	// Pre-compute today's date string in local timezone
-	const today = new Date();
-	const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 	
 	// Add rows for each facilitator
 	sortedFacilitators.forEach((facilitator, index) => {
