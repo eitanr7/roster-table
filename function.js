@@ -346,7 +346,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	
 	// Generate HTML using array for better performance
 	// Fixed width for 7 days + name column (200px + 7*200px = 1600px)
-	const htmlParts = [`<!-- Refresh: ${refresh} --><div>
+	const htmlParts = [`<div>
 		<table style="${tableStyles.main} width: 1600px;">
 			<tbody>`];
 	
@@ -581,7 +581,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	
 	htmlParts.push(`</tbody>
 		</table>
-	</div>`);
+	</div><!-- Refresh: ${refresh} -->`);
 	
 		return htmlParts.join('');
 	} catch (error) {
