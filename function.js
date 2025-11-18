@@ -169,7 +169,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	let locationsArray = null;
 	if (locationsValue) {
 		try {
-			locationsArray = typeof locationsValue === 'string' ? JSON.parse(locationsValue) : locationsValue;
+			locationsArray = typeof locationsValue === 'string' ? JSON.parse(`[${locationsValue}]`) : `[${locationsValue}]`;
 		} catch (e) {
 			console.error('Failed to parse locations:', e);
 		}
