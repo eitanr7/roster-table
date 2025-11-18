@@ -5,7 +5,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const start = startDate.value ?? "2027-05-03T00:00:00.000Z";
 	const end = endDate.value ?? "2027-05-09T23:59:00.000Z";
 	const locationsValue = locations.value ?? "";
-	const preview = previewShift.value ?? "";
+	const preview = previewShift.value ?? "{}";
 	const previewFacilitators = previewFacs.value ?? "";
 	const stateValue = state.value ?? "VIC";
   
@@ -279,47 +279,55 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	});
 	
 	// Add preview shifts for each faculty member in previewFacs
-	if (preview && previewFacilitators) {
-		// Parse preview shift data (Glide sends as JSON string)
-		let previewShiftObj = null;
+	// Skip if preview is empty string, empty object "{}", or previewFacilitators is empty
+	if (preview && preview !== "{}" && previewFacilitators && previewFacilitators !== "") {
 		try {
-			previewShiftObj = JSON.parse(preview);
-		} catch (e) {
-			console.error('Failed to parse previewShift:', e);
-		}
-		
-		if (previewShiftObj && previewShiftObj.startDate) {
-			const previewFacsArray = [...new Set(previewFacilitators.split(',').map(email => email.trim()).filter(email => email))];
-			
-			// Parse preview shift date
-			const previewDate = parseDateString(previewShiftObj.startDate);
-			if (previewDate && previewFacsArray.length > 0) {
-				allDates.add(previewDate);
-				
-				if (!shiftsByDate[previewDate]) {
-					shiftsByDate[previewDate] = {};
-				}
-				
-				// Create preview shift object for each faculty member
-				previewFacsArray.forEach(facEmail => {
-					if (!shiftsByDate[previewDate][facEmail]) {
-						shiftsByDate[previewDate][facEmail] = [];
-					}
-				
-				const previewShiftData = {
-					startDateTime: previewShiftObj.startDate,
-					endDateTime: previewShiftObj.endDate,
-					locationID: null, // We'll use locationName directly
-					locationName: previewShiftObj.locationName,
-					shiftStatus: previewShiftObj.status || 'MAYBE', // Use the status from previewShift, default to MAYBE
-					isPreview: true,
-					unavailable: false,
-					allDay: false
-				};
-				
-					shiftsByDate[previewDate][facEmail].push(previewShiftData);
-				});
+			// Parse preview shift data (Glide sends as JSON string)
+			let previewShiftObj = null;
+			try {
+				previewShiftObj = JSON.parse(preview);
+			} catch (e) {
+				console.error('Failed to parse previewShift:', e);
+				previewShiftObj = null; // Explicitly set to null on error
 			}
+			
+			// Check if it's a valid object with required properties
+			if (previewShiftObj && typeof previewShiftObj === 'object' && Object.keys(previewShiftObj).length > 0 && previewShiftObj.startDate) {
+				const previewFacsArray = [...new Set(previewFacilitators.split(',').map(email => email.trim()).filter(email => email))];
+				
+				// Parse preview shift date
+				const previewDate = parseDateString(previewShiftObj.startDate);
+				if (previewDate && previewFacsArray.length > 0) {
+					allDates.add(previewDate);
+					
+					if (!shiftsByDate[previewDate]) {
+						shiftsByDate[previewDate] = {};
+					}
+					
+					// Create preview shift object for each faculty member
+					previewFacsArray.forEach(facEmail => {
+						if (!shiftsByDate[previewDate][facEmail]) {
+							shiftsByDate[previewDate][facEmail] = [];
+						}
+					
+					const previewShiftData = {
+						startDateTime: previewShiftObj.startDate,
+						endDateTime: previewShiftObj.endDate,
+						locationID: null, // We'll use locationName directly
+						locationName: previewShiftObj.locationName,
+						shiftStatus: previewShiftObj.status || 'MAYBE', // Use the status from previewShift, default to MAYBE
+						isPreview: true,
+						unavailable: false,
+						allDay: false
+					};
+					
+						shiftsByDate[previewDate][facEmail].push(previewShiftData);
+					});
+				}
+			}
+		} catch (e) {
+			console.error('Error processing preview shifts:', e);
+			// Continue without preview shifts if there's an error
 		}
 	}
 	
