@@ -13,7 +13,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const previewFacilitators = previewFacs.value ?? "";
 	const stateValue = state.value ?? "VIC";
 	
-	// Return undefined if required inputs are missing
+	// Return undefined if required inputs are missing //
 	if (!facilitators || !shifts) {
 		return undefined;
 	}
