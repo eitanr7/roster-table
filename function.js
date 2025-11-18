@@ -1,4 +1,5 @@
 window.function = function (facilitatorsData, shiftsData, startDate, endDate, locations, previewShift, previewFacs, state) {
+	console.log('========== FUNCTION CALLED ==========');
 	try {
 		// Extract the .value from each parameter and assign default values for undefined inputs
 		const facilitators = facilitatorsData.value ?? "[]";
@@ -19,6 +20,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		
 		// Return undefined if required inputs are missing
 		if (!facilitators || !shifts) {
+			console.log('Missing required inputs, returning undefined');
 			return undefined;
 		}
 	
@@ -276,6 +278,13 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	});
 	
 	// Add preview shifts for each faculty member in previewFacs
+	console.log('Checking preview conditions:', {
+		hasPreview: !!preview,
+		isNotEmpty: preview !== "{}",
+		hasFacilitators: !!previewFacilitators,
+		facilitatorsList: previewFacilitators
+	});
+	
 	if (preview && preview !== "{}" && previewFacilitators) {
 		console.log('Processing preview shift...');
 		// Parse preview shift data (Glide sends as JSON string)
@@ -356,8 +365,10 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	// Sort dates
 	const sortedDates = Array.from(allDates).sort();
 	
-	// Create a unique key based on date range for clean re-renders
-	const dateRangeKey = sortedDates.length > 0 ? `${sortedDates[0]}-${sortedDates[sortedDates.length - 1]}` : 'no-dates';
+	// Create a unique key based on date range and preview state for clean re-renders
+	// Include a hash of the preview shift to ensure re-renders when preview changes
+	const previewHash = preview !== "{}" ? preview.substring(0, 50) : "no-preview";
+	const dateRangeKey = sortedDates.length > 0 ? `${sortedDates[0]}-${sortedDates[sortedDates.length - 1]}-${previewHash}` : 'no-dates';
 	
 	// Sort facilitators by rosterOrder (custom ordering to match component)
 	const sortedFacilitators = [...facilitatorsArray].sort((a, b) => {
@@ -386,6 +397,10 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		// If one string is a prefix of the other, shorter comes first
 		return orderA.length - orderB.length;
 	});
+	
+	console.log('Total dates in table:', sortedDates.length, 'First:', sortedDates[0], 'Last:', sortedDates[sortedDates.length - 1]);
+	console.log('Total facilitators:', sortedFacilitators.length);
+	console.log('Date range key:', dateRangeKey);
 	
 	// Generate HTML using array for better performance
 	// Fixed width for 7 days + name column (200px + 7*200px = 1600px)
@@ -632,7 +647,15 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	
 		let final = htmlParts.join('');
 		
+		// Safety check - ensure we have valid HTML
+		if (!final || final.length === 0) {
+			console.error('ERROR: Generated HTML is empty!');
+			return '<div style="padding: 20px; color: red;">Error: Generated HTML is empty</div>';
+		}
+		
 		console.log('Function completed successfully, returning HTML of length:', final.length);
+		console.log('HTML starts with:', final.substring(0, 100));
+		console.log('HTML ends with:', final.substring(final.length - 100));
 
 		return final;
 	} catch (error) {
