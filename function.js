@@ -5,7 +5,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const start = startDate.value ?? "2027-05-03T00:00:00.000Z";
 	const end = endDate.value ?? "2027-05-09T23:59:00.000Z";
 	const locationsValue = locations.value ?? "";
-	const preview = previewShift.value ?? "";
+	const preview = previewShift.value ?? "{}";
 	const previewFacilitators = previewFacs.value ?? "";
 	const stateValue = state.value ?? "VIC";
   
@@ -267,17 +267,6 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		shiftsByDate[date][facilitatorEmail].push(shift);
 	});
 	
-	// Pre-sort all shifts by start time to avoid sorting in nested loops
-	Object.keys(shiftsByDate).forEach(date => {
-		Object.keys(shiftsByDate[date]).forEach(facEmail => {
-			shiftsByDate[date][facEmail].sort((a, b) => {
-				const timeA = new Date(a.startDateTime).getTime();
-				const timeB = new Date(b.startDateTime).getTime();
-				return timeA - timeB;
-			});
-		});
-	});
-	
 	// Add preview shifts for each faculty member in previewFacs
 	if (preview && previewFacilitators) {
 		// Parse preview shift data (Glide sends as JSON string)
@@ -306,22 +295,33 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 						shiftsByDate[previewDate][facEmail] = [];
 					}
 				
-				const previewShiftData = {
-					startDateTime: previewShiftObj.startDate,
-					endDateTime: previewShiftObj.endDate,
-					locationID: null, // We'll use locationName directly
-					locationName: previewShiftObj.locationName,
-					shiftStatus: previewShiftObj.status || 'MAYBE', // Use the status from previewShift, default to MAYBE
-					isPreview: true,
-					unavailable: false,
-					allDay: false
-				};
+					const previewShiftData = {
+						startDateTime: previewShiftObj.startDate,
+						endDateTime: previewShiftObj.endDate,
+						locationID: null, // We'll use locationName directly
+						locationName: previewShiftObj.locationName,
+						shiftStatus: previewShiftObj.status || 'MAYBE', // Use the status from previewShift, default to MAYBE
+						isPreview: true,
+						unavailable: false,
+						allDay: false
+					};
 				
 					shiftsByDate[previewDate][facEmail].push(previewShiftData);
 				});
 			}
 		}
 	}
+	
+	// Pre-sort all shifts by start time AFTER adding preview shifts
+	Object.keys(shiftsByDate).forEach(date => {
+		Object.keys(shiftsByDate[date]).forEach(facEmail => {
+			shiftsByDate[date][facEmail].sort((a, b) => {
+				const timeA = new Date(a.startDateTime).getTime();
+				const timeB = new Date(b.startDateTime).getTime();
+				return timeA - timeB;
+			});
+		});
+	});
 	
 	// Sort dates
 	const sortedDates = Array.from(allDates).sort();
