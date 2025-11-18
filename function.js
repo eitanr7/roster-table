@@ -598,5 +598,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		</table>
 	</div>`);
 	
-	return htmlParts.join('');
+	let final = htmlParts.join('');
+
+	return final;
 }
