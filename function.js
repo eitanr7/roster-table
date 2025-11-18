@@ -161,8 +161,9 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	}
 
 	// Handle both JSON strings and JavaScript objects
-	const facilitatorsArray = typeof facilitators === 'string' ? JSON.parse(facilitators) : facilitators;
-	const shiftsArray = typeof shifts === 'string' ? JSON.parse(shifts) : shifts;
+	const facilitatorsArray = typeof facilitators === 'string' ? JSON.parse(`[${facilitators}]`) : `[${facilitators}]`;
+	
+	const shiftsArray = typeof shifts === 'string' ? JSON.parse(`[${shifts}]`) : `[${shifts}]`;
 	
 	// Parse locations data if provided
 	let locationsArray = null;
