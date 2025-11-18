@@ -1,5 +1,4 @@
 window.function = function (facilitatorsData, shiftsData, startDate, endDate, locations, previewShift, previewFacs, state) {
-	console.log('========== FUNCTION CALLED ==========');
 	try {
 		// Extract the .value from each parameter and assign default values for undefined inputs
 		const facilitators = facilitatorsData.value ?? "[]";
@@ -14,13 +13,9 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		}
 		const previewFacilitators = previewFacs.value ?? "";
 		const stateValue = state.value ?? "VIC";
-	  
-		console.log('Preview value:', preview, 'Type:', typeof preview);
-		console.log('Preview facilitators:', previewFacilitators);
 		
 		// Return undefined if required inputs are missing
 		if (!facilitators || !shifts) {
-			console.log('Missing required inputs, returning undefined');
 			return undefined;
 		}
 	
@@ -139,26 +134,14 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		return String(text).replace(/[&<>"']/g, m => map[m]);
 	}
 
-	// Helper function to parse date string to YYYY-MM-DD format (cached)
-	const dateCache = new Map();
+	// Helper function to parse date string to YYYY-MM-DD format
 	function parseDateString(dateValue) {
 		if (!dateValue) return null;
-		if (dateCache.has(dateValue)) {
-			return dateCache.get(dateValue);
-		}
-		let dateString = null;
 		if (dateValue.includes('T')) {
-			dateString = new Date(dateValue).toISOString().split('T')[0];
-		} else {
-			const parsed = new Date(dateValue);
-			if (!isNaN(parsed.getTime())) {
-				dateString = parsed.toISOString().split('T')[0];
-			}
+			return dateValue.split('T')[0];
 		}
-		if (dateString) {
-			dateCache.set(dateValue, dateString);
-		}
-		return dateString;
+		const parsed = new Date(dateValue);
+		return isNaN(parsed.getTime()) ? null : parsed.toISOString().split('T')[0];
 	}
 
 	// Helper function to format time (12-hour format)
@@ -198,19 +181,13 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const closedDates = new Set();
 	
 	// Get state for filtering closed dates
-	const p3State = stateValue || null;
+	const cityState = stateValue || null;
 	
-	// Pre-compile state check for better performance
-	const stateCheckCache = new Map();
+	// Helper function to check state match
 	function checkStateMatch(shiftState) {
-		if (!shiftState) return !p3State;
-		if (stateCheckCache.has(shiftState)) {
-			return stateCheckCache.get(shiftState);
-		}
+		if (!shiftState) return !cityState;
 		const shiftStates = shiftState.split(',').map(s => s.trim());
-		const matches = !p3State || shiftStates.includes(p3State);
-		stateCheckCache.set(shiftState, matches);
-		return matches;
+		return !cityState || shiftStates.includes(cityState);
 	}
 	
 	// Separate calendar dates from regular shifts
@@ -278,39 +255,24 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	});
 	
 	// Add preview shifts for each faculty member in previewFacs
-	console.log('Checking preview conditions:', {
-		hasPreview: !!preview,
-		isNotEmpty: preview !== "{}",
-		hasFacilitators: !!previewFacilitators,
-		facilitatorsList: previewFacilitators
-	});
-	
 	if (preview && preview !== "{}" && previewFacilitators) {
-		console.log('Processing preview shift...');
 		// Parse preview shift data (Glide sends as JSON string)
 		let previewShiftObj = null;
 		try {
 			previewShiftObj = JSON.parse(preview);
-			console.log('Parsed preview object:', previewShiftObj);
 		} catch (e) {
-			console.error('Failed to parse previewShift:', e);
 			previewShiftObj = null;
 		}
 		
-		// Check if the object is empty (has no keys)
-		const isEmptyObject = previewShiftObj && Object.keys(previewShiftObj).length === 0;
-		console.log('Is empty object?', isEmptyObject);
-		
 		// Validate that preview shift has required fields and they're not empty
 		if (previewShiftObj && 
-			!isEmptyObject &&
+			Object.keys(previewShiftObj).length > 0 &&
 			previewShiftObj.startDate && 
 			previewShiftObj.endDate && 
 			typeof previewShiftObj.startDate === 'string' &&
 			typeof previewShiftObj.endDate === 'string' &&
 			previewShiftObj.startDate.length > 0 &&
 			previewShiftObj.endDate.length > 0) {
-			console.log('Adding preview shift for facilitators:', previewFacilitators);
 			
 			const previewFacsArray = [...new Set(previewFacilitators.split(',').map(email => email.trim()).filter(email => email))];
 			
@@ -365,46 +327,20 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	// Sort dates
 	const sortedDates = Array.from(allDates).sort();
 	
-	// Create a unique key based on date range and preview state for clean re-renders
-	// Include a hash of the preview shift to ensure re-renders when preview changes
-	const previewHash = preview !== "{}" ? preview.substring(0, 50) : "no-preview";
-	const dateRangeKey = sortedDates.length > 0 ? `${sortedDates[0]}-${sortedDates[sortedDates.length - 1]}-${previewHash}` : 'no-dates';
-	
-	// Sort facilitators by rosterOrder (custom ordering to match component)
+	// Sort facilitators by rosterOrder
 	const sortedFacilitators = [...facilitatorsArray].sort((a, b) => {
 		// Handle missing rosterOrder - put them at the end, sorted by name
-		if (!a.rosterOrder && !b.rosterOrder) {
-			return a.fullName.localeCompare(b.fullName);
-		}
+		if (!a.rosterOrder && !b.rosterOrder) return a.fullName.localeCompare(b.fullName);
 		if (!a.rosterOrder) return 1;
 		if (!b.rosterOrder) return -1;
 		
-		// Custom sorting to match the exact component ordering
-		// The component seems to use a specific character-based ordering
-		const orderA = a.rosterOrder;
-		const orderB = b.rosterOrder;
-		
-		// Compare character by character
-		const minLength = Math.min(orderA.length, orderB.length);
-		for (let i = 0; i < minLength; i++) {
-			const charA = orderA.charCodeAt(i);
-			const charB = orderB.charCodeAt(i);
-			if (charA !== charB) {
-				return charA - charB;
-			}
-		}
-		
-		// If one string is a prefix of the other, shorter comes first
-		return orderA.length - orderB.length;
+		// Compare rosterOrder strings
+		return a.rosterOrder.localeCompare(b.rosterOrder);
 	});
-	
-	console.log('Total dates in table:', sortedDates.length, 'First:', sortedDates[0], 'Last:', sortedDates[sortedDates.length - 1]);
-	console.log('Total facilitators:', sortedFacilitators.length);
-	console.log('Date range key:', dateRangeKey);
 	
 	// Generate HTML using array for better performance
 	// Fixed width for 7 days + name column (200px + 7*200px = 1600px)
-	const htmlParts = [`<div key="${dateRangeKey}">
+	const htmlParts = [`<div>
 		<table style="${tableStyles.main} width: 1600px;">
 			<tbody>`];
 	
@@ -645,22 +581,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		</table>
 	</div>`);
 	
-		let final = htmlParts.join('');
-		
-		// Safety check - ensure we have valid HTML
-		if (!final || final.length === 0) {
-			console.error('ERROR: Generated HTML is empty!');
-			return '<div style="padding: 20px; color: red;">Error: Generated HTML is empty</div>';
-		}
-		
-		console.log('Function completed successfully, returning HTML of length:', final.length);
-		console.log('HTML starts with:', final.substring(0, 100));
-		console.log('HTML ends with:', final.substring(final.length - 100));
-
-		return final;
+		return htmlParts.join('');
 	} catch (error) {
-		console.error('Error in roster table function:', error);
-		console.error('Error stack:', error.stack);
 		// Return a visible error message so we know what went wrong
 		return `<div style="padding: 20px; color: red; border: 2px solid red; border-radius: 8px; margin: 20px;">
 			<h3>Error rendering roster table</h3>
