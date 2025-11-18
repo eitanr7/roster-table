@@ -430,8 +430,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			} else if (isToday) {
 				dateStyle = 'background-color: rgba(var(--ee-blue-rgb), 0.08) !important;';
 			}
-			htmlParts.push(`<td style="${cellBorderStyle} ${tableStyles.cellContent} ${dateStyle}">
-				<div class="shifts-container">`);
+			htmlParts.push(`<td style="${cellBorderStyle} ${tableStyles.cellContent} ${dateStyle}">`);
 			
 			const facilitatorShifts = shiftsByDate[date] && shiftsByDate[date][facilitator.email] 
 				? shiftsByDate[date][facilitator.email] 
@@ -574,7 +573,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				});
 			}
 			
-			htmlParts.push(`</div></td>`);
+			htmlParts.push(`</td>`);
 		});
 		
 		htmlParts.push(`</tr>`);
