@@ -268,7 +268,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	});
 	
 	// Add preview shifts for each faculty member in previewFacs
-	if (preview && previewFacilitators) {
+	if (preview && preview !== "{}" && previewFacilitators) {
 		// Parse preview shift data (Glide sends as JSON string)
 		let previewShiftObj = null;
 		try {
@@ -278,8 +278,12 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			previewShiftObj = null;
 		}
 		
+		// Check if the object is empty (has no keys)
+		const isEmptyObject = previewShiftObj && Object.keys(previewShiftObj).length === 0;
+		
 		// Validate that preview shift has required fields and they're not empty
 		if (previewShiftObj && 
+			!isEmptyObject &&
 			previewShiftObj.startDate && 
 			previewShiftObj.endDate && 
 			typeof previewShiftObj.startDate === 'string' &&
