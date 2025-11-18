@@ -13,13 +13,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const previewFacilitators = previewFacs.value ?? "";
 	const stateValue = state.value ?? "VIC";
 	
-	// Early return if required inputs are missing
-	if (!facilitators || !shifts || facilitators === "[]" || shifts === "[]") {
-		return undefined;
-	}
-	
-	// Early return if dates are invalid
-	if (!start || !end) {
+	// Return undefined if required inputs are missing //
+	if (!facilitators || !shifts) {
 		return undefined;
 	}
 	
@@ -161,19 +156,13 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		shiftsByDate[date][facilitatorEmail].push(shift);
 	});
 	
-	// STABILITY FIX: Keep preview shifts completely separate from regular shifts
-	// This prevents React reconciliation errors when preview data changes rapidly
-	const previewShiftsByDate = {};
-	let hasValidPreview = false;
-	
-	if (preview && preview !== "{}" && previewFacilitators && previewFacilitators.trim().length > 0) {
+	// Add preview shifts for each faculty member in previewFacs
+	if (preview && preview !== "{}" && previewFacilitators) {
 		// Parse preview shift data (Glide sends as JSON string)
 		let previewShiftObj = null;
 		try {
 			previewShiftObj = JSON.parse(preview);
 		} catch (e) {
-			// Invalid JSON, skip preview processing
-			console.warn('Failed to parse preview shift JSON:', e);
 			previewShiftObj = null;
 		}
 		
@@ -187,69 +176,49 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			previewShiftObj.startDate.length > 0 &&
 			previewShiftObj.endDate.length > 0) {
 			
-			// Parse and validate facilitators list early
 			const previewFacsArray = [...new Set(previewFacilitators.split(',').map(email => email.trim()).filter(email => email))];
 			
-			// Only proceed if we have valid facilitators
-			if (previewFacsArray.length > 0) {
-				// Parse preview shift date
-				const previewDate = parseDateString(previewShiftObj.startDate);
+			// Parse preview shift date
+			const previewDate = parseDateString(previewShiftObj.startDate);
+			
+			// Validate that the date was parsed successfully and we have facilitators
+			if (previewDate && previewFacsArray.length > 0) {
+				allDates.add(previewDate);
 				
-				// Validate that the date was parsed successfully
-				if (previewDate) {
-					allDates.add(previewDate);
-					hasValidPreview = true;
-					
-					if (!previewShiftsByDate[previewDate]) {
-						previewShiftsByDate[previewDate] = {};
+				if (!shiftsByDate[previewDate]) {
+					shiftsByDate[previewDate] = {};
+				}
+				
+				// Create preview shift object for each faculty member
+				previewFacsArray.forEach(facEmail => {
+					if (!shiftsByDate[previewDate][facEmail]) {
+						shiftsByDate[previewDate][facEmail] = [];
 					}
-					
-					// Create preview shift template once to avoid repeated object creation
-					const previewShiftTemplate = {
+				
+					const previewShiftData = {
 						startDateTime: previewShiftObj.startDate,
 						endDateTime: previewShiftObj.endDate,
 						locationID: null, // We'll use locationName directly
 						locationName: previewShiftObj.locationName || '',
-						shiftStatus: previewShiftObj.status || 'MAYBE',
+						shiftStatus: previewShiftObj.status || 'MAYBE', // Use the status from previewShift, default to MAYBE
 						isPreview: true,
 						unavailable: false,
 						allDay: false
 					};
-					
-					// Create preview shift for each faculty member
-					previewFacsArray.forEach(facEmail => {
-						if (!previewShiftsByDate[previewDate][facEmail]) {
-							previewShiftsByDate[previewDate][facEmail] = [];
-						}
-						
-						// Add a copy of the template
-						previewShiftsByDate[previewDate][facEmail].push({...previewShiftTemplate});
-					});
-				}
+				
+					shiftsByDate[previewDate][facEmail].push(previewShiftData);
+				});
 			}
 		}
 	}
 	
-	// Pre-sort all regular shifts by start time
+	// Pre-sort all shifts by start time AFTER adding preview shifts
 	Object.keys(shiftsByDate).forEach(date => {
 		Object.keys(shiftsByDate[date]).forEach(facEmail => {
 			shiftsByDate[date][facEmail].sort((a, b) => {
 				const timeA = new Date(a.startDateTime).getTime();
 				const timeB = new Date(b.startDateTime).getTime();
 				// Handle invalid dates (NaN values) - put them at the end
-				if (isNaN(timeA)) return 1;
-				if (isNaN(timeB)) return -1;
-				return timeA - timeB;
-			});
-		});
-	});
-	
-	// Sort preview shifts separately (they're in their own data structure now)
-	Object.keys(previewShiftsByDate).forEach(date => {
-		Object.keys(previewShiftsByDate[date]).forEach(facEmail => {
-			previewShiftsByDate[date][facEmail].sort((a, b) => {
-				const timeA = new Date(a.startDateTime).getTime();
-				const timeB = new Date(b.startDateTime).getTime();
 				if (isNaN(timeA)) return 1;
 				if (isNaN(timeB)) return -1;
 				return timeA - timeB;
@@ -275,99 +244,16 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const today = new Date();
 	const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 	
-	// Helper function to render a single shift (reduces code duplication)
-	function renderShift(shift, isPreview = false) {
-		const parts = [];
-		
-		// Extract time from UTC string
-		const startDateTime = shift.startDateTime;
-		const endDateTime = shift.endDateTime;
-		const startTime = startDateTime ? new Date(startDateTime).toISOString().substr(11, 5) : '';
-		const endTime = endDateTime ? new Date(endDateTime).toISOString().substr(11, 5) : '';
-		
-		const startTimeFormatted = startTime ? formatTime(startTime) : '';
-		const endTimeFormatted = endTime ? formatTime(endTime) : '';
-		
-		// Pre-compute shift properties
-		const isUnavailable = shift.unavailable === true || shift.unavailable === 'true';
-		const isAllDay = shift.allDay === true || shift.allDay === 'true';
-		const isConfirmed = !!shift.confirmed;
-		const isPublished = !!shift.published;
-		const isUnconfirmed = !isConfirmed && !isPreview && !isUnavailable && !isAllDay && !isPublished;
-		
-		// Get location text for all shifts
-		const locationText = shift.locationName || (shift.locationID && locationMap[shift.locationID] ? locationMap[shift.locationID] : '');
-		
-		// Get notes text for all shifts
-		const notesText = shift.notes || '';
-		
-		// Get display text
-		const displayText = (isUnavailable || isAllDay) ? notesText : locationText;
-		
-		// Determine CSS classes based on shift status
-		let shiftClass = 'shift-container';
-		let locationClass = 'shift-location';
-		const statusClass = getStatusClass(shift.shiftStatus);
-		
-		if (isUnavailable) {
-			shiftClass += ' shift-unavailable';
-			locationClass += ' location-confirmed status-unavailable';
-		} else if (isAllDay) {
-			shiftClass += ' shift-allday';
-			locationClass += ' location-confirmed status-allday';
-		} else if (isConfirmed) {
-			shiftClass += ' shift-confirmed ' + statusClass;
-			locationClass += ' location-confirmed ' + statusClass;
-		} else if (isPublished) {
-			shiftClass += ' shift-published ' + statusClass;
-			locationClass += ' location-published ' + statusClass;
-		} else {
-			// Unconfirmed or preview
-			shiftClass += ' shift-unconfirmed ' + statusClass;
-			locationClass += ' location-unconfirmed ' + statusClass;
-		}
-		
-		// Add hover class for all shifts with notes
-		const hoverClass = notesText ? ' shift-with-notes' : '';
-		
-		// Add data attribute to mark preview shifts for CSS/debugging
-		const previewAttr = isPreview ? ' data-preview="true"' : '';
-		
-		parts.push(`<div class="${shiftClass}${hoverClass}"${previewAttr}>`);
-		
-		// Only show time for non-allDay shifts
-		if (!isAllDay) {
-			const notesIndicator = notesText ? ' ⓘ' : '';
-			parts.push(`<div class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${notesIndicator}</div>`);
-		} else {
-			// For allDay shifts, just show "ALL DAY"
-			const notesIndicator = notesText ? ' ⓘ' : '';
-			parts.push(`<div class="shift-time">ALL DAY${notesIndicator}</div>`);
-		}
-		
-		// Show content based on shift type
-		if (isUnavailable || isAllDay) {
-			// For unavailable/allDay shifts, show notes as primary content
-			if (displayText) {
-				parts.push(`<div class="shift-notes">${escapeHtml(displayText)}</div>`);
-			}
-		} else {
-			// For regular shifts, show location and notes
-			if (locationText) {
-				parts.push(`<div class="${locationClass}" title="${escapeHtml(locationText)}">${escapeHtml(locationText)}</div>`);
-			}
-			if (notesText) {
-				parts.push(`<div class="shift-notes">${escapeHtml(notesText)}</div>`);
-			}
-		}
-		
-		parts.push(`</div>`);
-		
-		return parts.join('');
-	}
-	
 	// Generate HTML using array for better performance
-	const htmlParts = [`<div>
+	const htmlParts = [`<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<div>
 		<table class="roster-table">
 			<tbody>`];
 	
@@ -450,25 +336,95 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			}
 			htmlParts.push(`<td class="${cellClass} roster-cell-content${dateClass}">`);
 			
-			// STABILITY FIX: Render regular shifts first (stable DOM nodes)
 			const facilitatorShifts = shiftsByDate[date] && shiftsByDate[date][facilitator.email] 
 				? shiftsByDate[date][facilitator.email] 
 				: [];
 			
+			// Shifts are already pre-sorted, no need to sort again
+			
 			if (facilitatorShifts.length > 0) {
 				facilitatorShifts.forEach(shift => {
-					htmlParts.push(renderShift(shift, false));
-				});
-			}
-			
-			// STABILITY FIX: Then render preview shifts separately (can be added/removed without affecting regular shifts)
-			const previewShifts = previewShiftsByDate[date] && previewShiftsByDate[date][facilitator.email] 
-				? previewShiftsByDate[date][facilitator.email] 
-				: [];
-			
-			if (previewShifts.length > 0) {
-				previewShifts.forEach(shift => {
-					htmlParts.push(renderShift(shift, true));
+					// Extract time from UTC string without timezone conversion (cached)
+					const startDateTime = shift.startDateTime;
+					const endDateTime = shift.endDateTime;
+					const startTime = startDateTime ? new Date(startDateTime).toISOString().substr(11, 5) : '';
+					const endTime = endDateTime ? new Date(endDateTime).toISOString().substr(11, 5) : '';
+					
+					const startTimeFormatted = startTime ? formatTime(startTime) : '';
+					const endTimeFormatted = endTime ? formatTime(endTime) : '';
+					
+				// Pre-compute shift properties once
+				const isUnavailable = shift.unavailable === true || shift.unavailable === 'true';
+				const isAllDay = shift.allDay === true || shift.allDay === 'true';
+				const isPreview = shift.isPreview === true;
+				const isConfirmed = !!shift.confirmed;
+				const isPublished = !!shift.published;
+				const isUnconfirmed = !isConfirmed && !isPreview && !isUnavailable && !isAllDay && !isPublished;
+				
+				// Get location text for all shifts
+				const locationText = shift.locationName || (shift.locationID && locationMap[shift.locationID] ? locationMap[shift.locationID] : '');
+				
+				// Get notes text for all shifts
+				const notesText = shift.notes || '';
+				
+				// Get display text
+				const displayText = (isUnavailable || isAllDay) ? notesText : locationText;
+				
+				// Determine CSS classes based on shift status
+				let shiftClass = 'shift-container';
+				let locationClass = 'shift-location';
+				const statusClass = getStatusClass(shift.shiftStatus);
+				
+				if (isUnavailable) {
+					shiftClass += ' shift-unavailable';
+					locationClass += ' location-confirmed status-unavailable';
+				} else if (isAllDay) {
+					shiftClass += ' shift-allday';
+					locationClass += ' location-confirmed status-allday';
+				} else if (isConfirmed) {
+					shiftClass += ' shift-confirmed ' + statusClass;
+					locationClass += ' location-confirmed ' + statusClass;
+				} else if (isPublished) {
+					shiftClass += ' shift-published ' + statusClass;
+					locationClass += ' location-published ' + statusClass;
+				} else {
+					// Unconfirmed or preview
+					shiftClass += ' shift-unconfirmed ' + statusClass;
+					locationClass += ' location-unconfirmed ' + statusClass;
+				}
+					
+				// Add hover class for all shifts with notes
+				const hoverClass = notesText ? ' shift-with-notes' : '';
+				
+				htmlParts.push(`<div class="${shiftClass}${hoverClass}">`);
+				
+				// Only show time for non-allDay shifts
+				if (!isAllDay) {
+					const notesIndicator = notesText ? ' ⓘ' : '';
+					htmlParts.push(`<div class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${notesIndicator}</div>`);
+				} else {
+					// For allDay shifts, just show "ALL DAY"
+					const notesIndicator = notesText ? ' ⓘ' : '';
+					htmlParts.push(`<div class="shift-time">ALL DAY${notesIndicator}</div>`);
+				}
+				
+				// Show content based on shift type
+				if (isUnavailable || isAllDay) {
+					// For unavailable/allDay shifts, show notes as primary content
+					if (displayText) {
+						htmlParts.push(`<div class="shift-notes">${escapeHtml(displayText)}</div>`);
+					}
+				} else {
+					// For regular shifts, show location and notes
+					if (locationText) {
+						htmlParts.push(`<div class="${locationClass}" title="${escapeHtml(locationText)}">${escapeHtml(locationText)}</div>`);
+					}
+					if (notesText) {
+						htmlParts.push(`<div class="shift-notes">${escapeHtml(notesText)}</div>`);
+					}
+				}
+				
+				htmlParts.push(`</div>`);
 				});
 			}
 			
@@ -480,7 +436,11 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	
 	htmlParts.push(`</tbody>
 		</table>
-	</div>`);
+	</div>
+</body>
+</html>`);
 	
-	return htmlParts.join('');
+	const html = htmlParts.join('');
+	const encodedHtml = encodeURIComponent(html);
+	return "data:text/html;charset=utf-8," + encodedHtml;
 }

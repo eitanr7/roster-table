@@ -1,3 +1,63 @@
+:root {
+	--gv-border-base: rgba(51, 51, 51, 0.08);
+	--gv-border-dark: rgba(51, 51, 51, 0.15);
+	--gv-bg-container-base: #FAFAFA;
+	--gv-text-base: rgba(0, 0, 0, 0.95);
+
+	/* global colour variables */
+	--ee-red: #EF0849;
+	--ee-red-rgb: 239, 8, 73;
+
+	--ee-darkRed: #b20939;
+	--ee-darkRed-rgb: 178, 9, 57;
+	
+	--ee-yellow: #FFC020;
+	--ee-yellow-rgb: 255, 192, 32;
+
+	--ee-darkYellow: #ffae00;
+	--ee-darkYellow-rgb: 255, 174, 0;
+
+	--ee-green: rgb(0, 177, 82);
+	--ee-green-rgb: 0, 177, 82;
+
+	--ee-blue: #1A77FF;
+	--ee-blue-rgb: 26, 119, 255;
+
+	--ee-lightBlue: #1ABCFF;
+	--ee-lightBlue-rgb: 26, 188, 255;
+
+	--ee-purple: #A289F7;
+	--ee-purple-rgb: 162, 137, 247;
+
+	--ee-pink: #FBB8F3;
+	--ee-pink-rgb: 251, 184, 243;
+
+	--ee-darkPink: #fc8def;
+	--ee-darkPink-rgb: 252, 141, 239;
+
+	--ee-orange: #FF7434;
+	--ee-orange-rgb: 255, 116, 52;
+
+	--ee-brown: #8B4513;
+	--ee-brown-rgb: 139, 69, 19;
+}
+
+/* FAC SHIFTS CELL STYLING */
+/* makes the fac shift container scale on hover */
+.shift-container {
+    transition: transform 0.2s ease-in-out!important;
+}
+
+.shift-container:hover {
+    transform: scale(1.03)!important;
+    transition: transform 0.2s ease-in-out!important;
+}
+
+/* makes notes text visible on hover */
+.shift-with-notes:hover .shift-notes {
+    display: block !important;
+}
+
 /* Roster Table Styles */
 
 /* Table Styles */
@@ -269,7 +329,7 @@
 
 .facilitator-hours {
 	font-size: 11px;
-	color: var(--gv-text-secondary);
+	color: var(--gv-text-base);
 	font-weight: 400;
 	margin-top: 2px;
 }
