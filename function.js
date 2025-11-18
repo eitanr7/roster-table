@@ -108,10 +108,10 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 
 	const tableStyles = {
 		main: 'border-collapse: collapse; table-layout: fixed; font-size: 14px;',
-		firstRow: 'border-right: 1px solid var(--gv-border-base); border-bottom: 1px solid var(--gv-border-base); position: sticky; left: 0; background-color: var(--gv-bg-container-base); mask-image: linear-gradient(90deg, rgba(255, 255, 255, 1) 90%, rgba(255, 255, 255, 0) 100%);',
-		regularRow: 'border-top: 1px solid var(--gv-border-base); border-right: 1px solid var(--gv-border-base); border-bottom: 1px solid var(--gv-border-base); position: sticky; left: 0; background-color: var(--gv-bg-container-base); mask-image: linear-gradient(90deg, rgba(255, 255, 255, 1) 90%, rgba(255, 255, 255, 0) 100%);',
-		firstRowCell: 'border-left: 1px solid var(--gv-border-base); border-right: 1px solid var(--gv-border-base); border-bottom: 1px solid var(--gv-border-base);',
-		regularCell: 'border: 1px solid var(--gv-border-base);',
+		firstRow: 'border-right: thin solid var(--gv-border-base); border-bottom: thin solid var(--gv-border-base); position: sticky; left: 0; background-color: var(--gv-bg-container-base); mask-image: linear-gradient(90deg, rgba(255, 255, 255, 1) 90%, rgba(255, 255, 255, 0) 100%);',
+		regularRow: 'border-top: thin solid var(--gv-border-base); border-right: thin solid var(--gv-border-base); border-bottom: thin solid var(--gv-border-base); position: sticky; left: 0; background-color: var(--gv-bg-container-base); mask-image: linear-gradient(90deg, rgba(255, 255, 255, 1) 90%, rgba(255, 255, 255, 0) 100%);',
+		firstRowCell: 'border-left: 1px solid var(--gv-border-base); border-right: thin solid var(--gv-border-base); border-bottom: thin solid var(--gv-border-base);',
+		regularCell: 'border: thin solid var(--gv-border-base);',
 		cellContent: 'padding: 8px; text-align: left; vertical-align: top; min-height: 40px; width: 200px;',
 		nameCell: 'padding: 8px; text-align: left; vertical-align: top; font-weight: 500; width: 200px;'
 	};
