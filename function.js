@@ -275,13 +275,24 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			previewShiftObj = JSON.parse(preview);
 		} catch (e) {
 			console.error('Failed to parse previewShift:', e);
+			previewShiftObj = null;
 		}
 		
-		if (previewShiftObj && previewShiftObj.startDate) {
+		// Validate that preview shift has required fields and they're not empty
+		if (previewShiftObj && 
+			previewShiftObj.startDate && 
+			previewShiftObj.endDate && 
+			typeof previewShiftObj.startDate === 'string' &&
+			typeof previewShiftObj.endDate === 'string' &&
+			previewShiftObj.startDate.length > 0 &&
+			previewShiftObj.endDate.length > 0) {
+			
 			const previewFacsArray = [...new Set(previewFacilitators.split(',').map(email => email.trim()).filter(email => email))];
 			
 			// Parse preview shift date
 			const previewDate = parseDateString(previewShiftObj.startDate);
+			
+			// Validate that the date was parsed successfully and we have facilitators
 			if (previewDate && previewFacsArray.length > 0) {
 				allDates.add(previewDate);
 				
@@ -299,7 +310,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 						startDateTime: previewShiftObj.startDate,
 						endDateTime: previewShiftObj.endDate,
 						locationID: null, // We'll use locationName directly
-						locationName: previewShiftObj.locationName,
+						locationName: previewShiftObj.locationName || '',
 						shiftStatus: previewShiftObj.status || 'MAYBE', // Use the status from previewShift, default to MAYBE
 						isPreview: true,
 						unavailable: false,
@@ -318,6 +329,9 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			shiftsByDate[date][facEmail].sort((a, b) => {
 				const timeA = new Date(a.startDateTime).getTime();
 				const timeB = new Date(b.startDateTime).getTime();
+				// Handle invalid dates (NaN values) - put them at the end
+				if (isNaN(timeA)) return 1;
+				if (isNaN(timeB)) return -1;
 				return timeA - timeB;
 			});
 		});
