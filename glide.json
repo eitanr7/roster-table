@@ -47,7 +47,7 @@
 		}
 	  ],
 	  "result": {
-		"type": "string-html"
+		"type": "string"
 	  }
 	}
   ]
