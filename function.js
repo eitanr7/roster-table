@@ -5,7 +5,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const start = startDate.value ?? "2027-05-03T00:00:00.000Z";
 	const end = endDate.value ?? "2027-05-09T23:59:00.000Z";
 	const locationsValue = locations.value ?? "";
-	const previewShifts = previewShift.value ?? "{}";
+	const preview = previewShift.value ?? "";
 	const previewFacilitators = previewFacs.value ?? "";
 	const stateValue = state.value ?? "VIC";
   
@@ -279,75 +279,48 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	});
 	
 	// Add preview shifts for each faculty member in previewFacs
-	// Skip if previewShifts is empty or previewFacilitators is empty
-	try {
-		if (previewShifts && previewShifts.trim() !== "" && previewShifts !== "{}" && 
-		    previewFacilitators && previewFacilitators.trim() !== "") {
+	if (preview && previewFacilitators) {
+		// Parse preview shift data (Glide sends as JSON string)
+		let previewShiftObj = null;
+		try {
+			previewShiftObj = JSON.parse(preview);
+		} catch (e) {
+			console.error('Failed to parse previewShift:', e);
+		}
+		
+		if (previewShiftObj && previewShiftObj.startDate) {
+			const previewFacsArray = [...new Set(previewFacilitators.split(',').map(email => email.trim()).filter(email => email))];
 			
-			// Parse preview shift data (Glide sends as JSON string)
-			let previewShiftObj = null;
-			try {
-				previewShiftObj = JSON.parse(previewShifts);
-			} catch (e) {
-				console.error('Failed to parse previewShift:', e);
-				// Skip preview shifts if parsing fails
-				previewShiftObj = null;
-			}
-			
-			// Check if it's a valid object with required properties
-			if (previewShiftObj && 
-			    typeof previewShiftObj === 'object' && 
-			    !Array.isArray(previewShiftObj) &&
-			    Object.keys(previewShiftObj).length > 0 && 
-			    previewShiftObj.startDate) {
+			// Parse preview shift date
+			const previewDate = parseDateString(previewShiftObj.startDate);
+			if (previewDate && previewFacsArray.length > 0) {
+				allDates.add(previewDate);
 				
-				// Parse facilitator emails
-				let previewFacsArray = [];
-				try {
-					previewFacsArray = [...new Set(
-						previewFacilitators.split(',')
-							.map(email => email.trim())
-							.filter(email => email && email !== "")
-					)];
-				} catch (e) {
-					console.error('Failed to parse previewFacilitators:', e);
-					previewFacsArray = [];
+				if (!shiftsByDate[previewDate]) {
+					shiftsByDate[previewDate] = {};
 				}
 				
-				// Parse preview shift date
-				const previewDate = parseDateString(previewShiftObj.startDate);
-				if (previewDate && previewFacsArray.length > 0) {
-					allDates.add(previewDate);
-					
-					if (!shiftsByDate[previewDate]) {
-						shiftsByDate[previewDate] = {};
+				// Create preview shift object for each faculty member
+				previewFacsArray.forEach(facEmail => {
+					if (!shiftsByDate[previewDate][facEmail]) {
+						shiftsByDate[previewDate][facEmail] = [];
 					}
-					
-					// Create preview shift object for each faculty member
-					previewFacsArray.forEach(facEmail => {
-						if (!shiftsByDate[previewDate][facEmail]) {
-							shiftsByDate[previewDate][facEmail] = [];
-						}
-					
-						const previewShiftData = {
-							startDateTime: previewShiftObj.startDate,
-							endDateTime: previewShiftObj.endDate,
-							locationID: null, // We'll use locationName directly
-							locationName: previewShiftObj.locationName || '',
-							shiftStatus: previewShiftObj.status || 'MAYBE',
-							isPreview: true,
-							unavailable: false,
-							allDay: false
-						};
-						
-						shiftsByDate[previewDate][facEmail].push(previewShiftData);
-					});
-				}
+				
+				const previewShiftData = {
+					startDateTime: previewShiftObj.startDate,
+					endDateTime: previewShiftObj.endDate,
+					locationID: null, // We'll use locationName directly
+					locationName: previewShiftObj.locationName,
+					shiftStatus: previewShiftObj.status || 'MAYBE', // Use the status from previewShift, default to MAYBE
+					isPreview: true,
+					unavailable: false,
+					allDay: false
+				};
+				
+					shiftsByDate[previewDate][facEmail].push(previewShiftData);
+				});
 			}
 		}
-	} catch (e) {
-		console.error('Error processing preview shifts (outer catch):', e);
-		// Continue without preview shifts if there's any error
 	}
 	
 	// Sort dates
