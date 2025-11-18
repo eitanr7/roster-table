@@ -251,6 +251,22 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<style>
+		@font-face {
+			font-family: 'Euclid Circular A';
+			src: url('https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/AM6HpFEY5Q2u77eTnXED/pub/HOrLiKPfjk0ACw3Q6Hcb.woff2') format('woff2');
+			font-weight: 400;
+			font-style: normal;
+			font-display: swap;
+		}
+
+		@font-face {
+			font-family: 'Euclid Circular A';
+			src: url('https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/AM6HpFEY5Q2u77eTnXED/pub/8kP9iLAOBxPtiNKkXfit.woff2') format('woff2');
+			font-weight: 500;
+			font-style: normal;
+			font-display: swap;
+		}
+
 		:root {
 			--gv-border-base: rgba(51, 51, 51, 0.08);
 			--gv-border-dark: rgba(51, 51, 51, 0.15);
@@ -293,6 +309,11 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 
 			--ee-brown: #8B4513;
 			--ee-brown-rgb: 139, 69, 19;
+		}
+
+		body {
+			font-family: 'Euclid Circular A', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+			margin: 0;
 		}
 
 		/* FAC SHIFTS CELL STYLING */
