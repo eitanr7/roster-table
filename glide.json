@@ -40,14 +40,19 @@
 				"displayName": "Preview Facilitators",
 				"type": "string"
 			},
-			{
-				"name": "state",
-				"displayName": "State",
-				"type": "string"
-			}
-		],
-		"result": {
+		{
+			"name": "state",
+			"displayName": "State",
 			"type": "string"
+		},
+		{
+			"name": "refreshTrigger",
+			"displayName": "Refresh Trigger (Optional - for manual refresh)",
+			"type": "number"
 		}
+	],
+	"result": {
+		"type": "string"
+	}
 	}
 ]

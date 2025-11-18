@@ -1,4 +1,4 @@
-window.function = function (facilitatorsData, shiftsData, startDate, endDate, locations, previewShift, previewFacs, state) {
+window.function = function (facilitatorsData, shiftsData, startDate, endDate, locations, previewShift, previewFacs, state, refreshTrigger) {
 	try {
 		// Extract the .value from each parameter and assign default values for undefined inputs
 		const facilitators = facilitatorsData.value ?? "[]";
@@ -13,6 +13,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		}
 		const previewFacilitators = previewFacs.value ?? "";
 		const stateValue = state.value ?? "VIC";
+		// refreshTrigger is just used to force recomputation when needed (not used in logic)
 		
 		// Return undefined if required inputs are missing
 		if (!facilitators || !shifts) {
