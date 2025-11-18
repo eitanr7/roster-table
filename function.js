@@ -374,7 +374,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			text-align: left;
 			vertical-align: top;
 			min-height: 40px;
-			width: 200px;
+			width: 183px;
 		}
 
 		.roster-cell-name {
@@ -382,7 +382,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			text-align: left;
 			vertical-align: top;
 			font-weight: 500;
-			width: 200px;
+			width: 183px;
 		}
 
 		.roster-cell-today {
