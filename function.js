@@ -1,125 +1,27 @@
 window.function = function (facilitatorsData, shiftsData, startDate, endDate, locations, previewShift, previewFacs, state) {
-	try {
-		// Extract the .value from each parameter and assign default values for undefined inputs
-		const facilitators = facilitatorsData.value ?? "[]";
-		const shifts = shiftsData.value ?? "[]";
-		const start = startDate.value ?? "2027-05-03T00:00:00.000Z";
-		const end = endDate.value ?? "2027-05-09T23:59:00.000Z";
-		const locationsValue = locations.value ?? "";
-		let preview = previewShift.value ?? "{}";
-		// Handle edge cases where preview might be null, undefined, or empty string
-		if (!preview || preview === "" || preview === "null" || preview === "undefined") {
-			preview = "{}";
-		}
-		const previewFacilitators = previewFacs.value ?? "";
-		const stateValue = state.value ?? "VIC";
-		
-		// Return undefined if required inputs are missing
-		if (!facilitators || !shifts) {
-			return undefined;
-		}
+	// Extract the .value from each parameter and assign default values for undefined inputs
+	const facilitators = facilitatorsData.value ?? "[]";
+	const shifts = shiftsData.value ?? "[]";
+	const start = startDate.value ?? "2027-05-03T00:00:00.000Z";
+	const end = endDate.value ?? "2027-05-09T23:59:00.000Z";
+	const locationsValue = locations.value ?? "";
+	let preview = previewShift.value ?? "{}";
+	// Handle edge cases where preview might be null, undefined, or empty string
+	if (!preview || preview === "" || preview === "null" || preview === "undefined") {
+		preview = "{}";
+	}
+	const previewFacilitators = previewFacs.value ?? "";
+	const stateValue = state.value ?? "VIC";
 	
-	// Reusable style definitions
-	const statusStyles = {
-		'VIC': {
-			background: 'color-mix(in srgb, rgb(var(--ee-green-rgb)) 35%, white)',
-			borderColor: 'var(--ee-green)',
-			textColor: 'var(--gv-text-base)'
-		},
-		'NSW': {
-			background: 'color-mix(in srgb, rgb(var(--ee-lightBlue-rgb)) 50%, white)',
-			borderColor: 'var(--ee-lightBlue)',
-			textColor: 'var(--gv-text-base)'
-		},
-		'MAYBE': {
-			background: 'var(--gv-border-base)',
-			borderColor: 'var(--gv-border-dark)',
-			textColor: 'var(--gv-text-base)'
-		},
-		'NREG': {
-			background: 'color-mix(in srgb, rgb(var(--ee-lightBlue-rgb)) 10%, white)',
-			borderColor: 'color-mix(in srgb, rgb(var(--ee-lightBlue-rgb)) 50%, white)',
-			textColor: 'var(--gv-text-base)'
-		},
-		'VREG': {
-			background: 'color-mix(in srgb, rgb(var(--ee-green-rgb)) 10%, white)',
-			borderColor: 'color-mix(in srgb, rgb(var(--ee-green-rgb)) 50%, white)',
-			textColor: 'var(--gv-text-base)'
-		},
-		'QLD': {
-			background: 'color-mix(in srgb, rgb(var(--ee-orange-rgb)) 50%, white)',
-			borderColor: 'var(--ee-orange)',
-			textColor: 'var(--gv-text-base)'
-		},
-		'QREG': {
-			background: 'color-mix(in srgb, rgb(var(--ee-orange-rgb)) 10%, white)',
-			borderColor: 'color-mix(in srgb, rgb(var(--ee-orange-rgb)) 50%, white)',
-			textColor: 'var(--gv-text-base)'
-		},
-		'SA': {
-			background: 'rgb(var(--ee-pink-rgb))',
-			borderColor: 'var(--ee-pink)',
-			textColor: 'var(--gv-text-base)'
-		},
-		'SREG': {
-			background: 'color-mix(in srgb, rgb(var(--ee-pink-rgb)) 10%, white)',
-			borderColor: 'color-mix(in srgb, rgb(var(--ee-pink-rgb)) 50%, white)',
-			textColor: 'var(--gv-text-base)'
-		},
-		'CAL-DATE': {
-			background: 'rgba(var(--ee-blue-rgb), 0.08)',
-			borderColor: 'var(--gv-border-base)',
-			textColor: 'var(--gv-text-accent)'
-		},
-		'unavailable': {
-			background: 'var(--gv-border-base)!important;',
-			borderColor: 'var(--gv-border-dark)',
-			textColor: 'var(--gv-text-base)',
-			statusText: ' UNAVAILABLE'
-		},
-		'allDay': {
-			background: 'var(--gv-border-base)!important;',
-			borderColor: 'var(--gv-border-dark)',
-			textColor: 'var(--gv-text-base)',
-			statusText: ' ALL DAY'
-		}
-	};
-
-	const locationBackgrounds = {
-		'VIC': 'color-mix(in srgb, rgb(var(--ee-green-rgb)) 60%, white)',
-		'NSW': 'color-mix(in srgb, rgb(var(--ee-lightBlue-rgb)) 70%, white)',
-		'MAYBE': 'var(--gv-border-dark)',
-		'NREG': 'color-mix(in srgb, rgb(var(--ee-lightBlue-rgb)) 30%, white)',
-		'VREG': 'color-mix(in srgb, rgb(var(--ee-green-rgb)) 30%, white)',
-		'QLD': 'color-mix(in srgb, rgb(var(--ee-orange-rgb)) 70%, white)',
-		'QREG': 'color-mix(in srgb, rgb(var(--ee-orange-rgb)) 30%, white)',
-		'SA': 'color-mix(in srgb, rgb(var(--ee-pink-rgb)) 90%, black)',
-		'SREG': 'color-mix(in srgb, rgb(var(--ee-pink-rgb)) 30%, white)',
-		'CAL-DATE': 'var(--gv-border-base)',
-		'unavailable': 'var(--gv-border-base)',
-		'allDay': 'var(--gv-border-base)'
-	};
-
-	const shiftStyles = {
-		common: {
-			container: 'border-radius: 0.75rem; padding: 0.5rem 0.6rem 0.5rem 0.6rem; margin: 2px 0; font-size: 14px; width: 100%; box-sizing: border-box;',
-			time: 'font-weight: 500; font-size: 11px;'
-		},
-		location: {
-			base: 'white-space: nowrap; overflow: hidden; text-overflow: clip; border-radius: 0.5rem; padding: 0.25em 0.4em; margin-top: 0.4rem; font-size: 14px; font-weight: 500; display: inline-block; max-width: 160px;'
-		},
-		notes: 'font-size: 14px; color: var(--gv-text-base); margin-top: 0.2rem; display: none; transition: opacity 0.2s ease;'
-	};
-
-	const tableStyles = {
-		main: 'border-collapse: collapse; table-layout: fixed; font-size: 14px;',
-		firstRow: 'border-right: thin solid var(--gv-border-base); border-bottom: thin solid var(--gv-border-base); position: sticky; left: 0; background-color: var(--gv-bg-container-base); mask-image: linear-gradient(90deg, rgba(255, 255, 255, 1) 90%, rgba(255, 255, 255, 0) 100%);',
-		regularRow: 'border-top: thin solid var(--gv-border-base); border-right: thin solid var(--gv-border-base); border-bottom: thin solid var(--gv-border-base); position: sticky; left: 0; background-color: var(--gv-bg-container-base); mask-image: linear-gradient(90deg, rgba(255, 255, 255, 1) 90%, rgba(255, 255, 255, 0) 100%);',
-		firstRowCell: 'border-left: 1px solid var(--gv-border-base); border-right: thin solid var(--gv-border-base); border-bottom: thin solid var(--gv-border-base);',
-		regularCell: 'border: thin solid var(--gv-border-base);',
-		cellContent: 'padding: 8px; text-align: left; vertical-align: top; min-height: 40px; width: 200px;',
-		nameCell: 'padding: 8px; text-align: left; vertical-align: top; font-weight: 500; width: 200px;'
-	};
+	// Return undefined if required inputs are missing
+	if (!facilitators || !shifts) {
+		return undefined;
+	}
+	
+	// Helper to get status class name
+	function getStatusClass(status) {
+		return 'status-' + (status || 'maybe').toLowerCase();
+	}
 
 	// Helper function to escape HTML to prevent XSS
 	function escapeHtml(text) {
@@ -343,15 +245,14 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 	
 	// Generate HTML using array for better performance
-	// Fixed width for 7 days + name column (200px + 7*200px = 1600px)
 	const htmlParts = [`<div>
-		<table style="${tableStyles.main} width: 1600px;">
+		<table class="roster-table">
 			<tbody>`];
 	
 	// Add rows for each facilitator
 	sortedFacilitators.forEach((facilitator, index) => {
 		const isFirstRow = index === 0;
-		const borderStyle = isFirstRow ? tableStyles.firstRow : tableStyles.regularRow;
+		const rowClass = isFirstRow ? 'roster-row-first' : 'roster-row-regular';
 		
 		// Check if all shifts for this facilitator are confirmed
 		let allShiftsConfirmed = true;
@@ -387,15 +288,13 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		let avatarHtml;
 		if (hasShifts && allShiftsConfirmed) {
 			// Show green circle with white tick
-			avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 50%; color: white; background-color: var(--ee-green); display: flex; align-items: center; justify-content: center; margin-right: 8px;">
-			✓</div>`;
+			avatarHtml = `<div class="facilitator-badge facilitator-badge-confirmed">✓</div>`;
 		} else if (hasShifts && !allShiftsConfirmed) {
-			// Show orange circle with white tick
-			avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 50%; color: white; background-color: var(--ee-darkYellow); display: flex; align-items: center; justify-content: center; margin-right: 8px;">
-			?</div>`;
+			// Show orange circle with question mark
+			avatarHtml = `<div class="facilitator-badge facilitator-badge-pending">?</div>`;
 		} else if (facilitator.avatar) {
 			// Show regular avatar
-			avatarHtml = `<img src="${facilitator.avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-right: 8px; vertical-align: middle;" />`;
+			avatarHtml = `<img src="${facilitator.avatar}" class="facilitator-avatar" />`;
 		} else {
 			avatarHtml = '';
 		}
@@ -405,30 +304,29 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		const hoursDisplay = `🕐 ${hoursFormatted} hrs`;
 		
 		htmlParts.push(`<tr>
-				<td style="${borderStyle} ${tableStyles.nameCell}">
-					<div style="display: flex; align-items: center;">
+				<td class="${rowClass} roster-cell-name">
+					<div class="facilitator-info">
 						${avatarHtml}
-						<div style="display: flex; flex-direction: column;">
+						<div class="facilitator-details">
 							<span>${escapeHtml(facilitator.fullName)}</span>
-							<span style="font-size: 11px; color: var(--gv-text-secondary); font-weight: 400; margin-top: 2px;">${hoursDisplay}</span>
+							<span class="facilitator-hours">${hoursDisplay}</span>
 						</div>
 					</div>
 				</td>`);
 		
 		// Add cells for each date
 		sortedDates.forEach(date => {
-			const cellBorderStyle = isFirstRow ? tableStyles.firstRowCell : tableStyles.regularCell;
+			const cellClass = isFirstRow ? 'roster-cell-first' : 'roster-cell-regular';
 			// Check if this date is a closed date or today and apply appropriate background
-			// Closed takes precedence over today (matching CSS where closed rule comes after today)
 			const isClosedDate = closedDates.has(date);
 			const isToday = date === todayString;
-			let dateStyle = '';
+			let dateClass = '';
 			if (isClosedDate) {
-				dateStyle = 'background-color: rgba(var(--ee-red-rgb), 0.08) !important;';
+				dateClass = ' roster-cell-closed';
 			} else if (isToday) {
-				dateStyle = 'background-color: rgba(var(--ee-blue-rgb), 0.08) !important;';
+				dateClass = ' roster-cell-today';
 			}
-			htmlParts.push(`<td style="${cellBorderStyle} ${tableStyles.cellContent} ${dateStyle}">`);
+			htmlParts.push(`<td class="${cellClass} roster-cell-content${dateClass}">`);
 			
 			const facilitatorShifts = shiftsByDate[date] && shiftsByDate[date][facilitator.email] 
 				? shiftsByDate[date][facilitator.email] 
@@ -447,127 +345,78 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					const startTimeFormatted = startTime ? formatTime(startTime) : '';
 					const endTimeFormatted = endTime ? formatTime(endTime) : '';
 					
-					// Pre-compute shift properties once
-					const isUnavailable = shift.unavailable === true || shift.unavailable === 'true';
-					const isAllDay = shift.allDay === true || shift.allDay === 'true';
-					const isPreview = shift.isPreview === true;
-					const isConfirmed = !!shift.confirmed;
-					const isPublished = !!shift.published; // Check if shift has a published date
-					const isUnconfirmed = !isConfirmed && !isPreview && !isUnavailable && !isAllDay && !isPublished;
+				// Pre-compute shift properties once
+				const isUnavailable = shift.unavailable === true || shift.unavailable === 'true';
+				const isAllDay = shift.allDay === true || shift.allDay === 'true';
+				const isPreview = shift.isPreview === true;
+				const isConfirmed = !!shift.confirmed;
+				const isPublished = !!shift.published;
+				const isUnconfirmed = !isConfirmed && !isPreview && !isUnavailable && !isAllDay && !isPublished;
+				
+				// Get location text for all shifts
+				const locationText = shift.locationName || (shift.locationID && locationMap[shift.locationID] ? locationMap[shift.locationID] : '');
+				
+				// Get notes text for all shifts
+				const notesText = shift.notes || '';
+				
+				// Get display text
+				const displayText = (isUnavailable || isAllDay) ? notesText : locationText;
+				
+				// Determine CSS classes based on shift status
+				let shiftClass = 'shift-container';
+				let locationClass = 'shift-location';
+				const statusClass = getStatusClass(shift.shiftStatus);
+				
+				if (isUnavailable) {
+					shiftClass += ' shift-unavailable';
+					locationClass += ' location-confirmed status-unavailable';
+				} else if (isAllDay) {
+					shiftClass += ' shift-allday';
+					locationClass += ' location-confirmed status-allday';
+				} else if (isConfirmed) {
+					shiftClass += ' shift-confirmed ' + statusClass;
+					locationClass += ' location-confirmed ' + statusClass;
+				} else if (isPublished) {
+					shiftClass += ' shift-published ' + statusClass;
+					locationClass += ' location-published ' + statusClass;
+				} else {
+					// Unconfirmed or preview
+					shiftClass += ' shift-unconfirmed ' + statusClass;
+					locationClass += ' location-unconfirmed ' + statusClass;
+				}
 					
-					// Get location text for all shifts
-					const locationText = shift.locationName || (shift.locationID && locationMap[shift.locationID] ? locationMap[shift.locationID] : '');
-					
-					// Get notes text for all shifts
-					const notesText = shift.notes || '';
-					
-					// Get display text - show both location and notes for all shifts
-					// For unavailable/allDay shifts, use notes as primary display text
-					// For regular shifts, use location as primary display text
-					const displayText = (isUnavailable || isAllDay) ? notesText : locationText;
-					
-					// Set colors based on shiftStatus
-					let shiftStyle, timeStyle, statusText = '';
-					
-					if (isUnavailable) {
-						const currentStyle = statusStyles['unavailable'];
-						shiftStyle = `background-color: ${currentStyle.background}; border: ${currentStyle.borderColor}; ${shiftStyles.common.container} color: ${currentStyle.textColor};`;
-						timeStyle = `${shiftStyles.common.time} color: ${currentStyle.textColor};`;
-						statusText = currentStyle.statusText;
-					} else if (isAllDay) {
-						const currentStyle = statusStyles['allDay'];
-						shiftStyle = `background-color: ${currentStyle.background}; border: ${currentStyle.borderColor}; ${shiftStyles.common.container} color: ${currentStyle.textColor};`;
-						timeStyle = `${shiftStyles.common.time} color: ${currentStyle.textColor};`;
-						statusText = currentStyle.statusText;
-					} else if (isConfirmed) {
-						// Confirmed shift styling - colored background with solid border
-						const currentStyle = statusStyles[shift.shiftStatus] || statusStyles['VIC'];
-						
-						shiftStyle = `background: ${currentStyle.background}; border: thin solid ${currentStyle.borderColor}; ${shiftStyles.common.container}`;
-						timeStyle = `${shiftStyles.common.time} color: ${currentStyle.textColor};`;
-					} else if (isPublished) {
-						// Published shift styling - white background with solid border
-						const currentStyle = statusStyles[shift.shiftStatus] || statusStyles['MAYBE'];
-						
-						shiftStyle = `background-color: white; border: thin solid ${currentStyle.borderColor}; ${shiftStyles.common.container} color: ${currentStyle.textColor};`;
-						timeStyle = `${shiftStyles.common.time} color: ${currentStyle.textColor};`;
-
-					} else if (isPreview || isUnconfirmed) {
-						// Preview shift or unconfirmed shift styling - white background with dashed border
-						const currentStyle = statusStyles[shift.shiftStatus] || statusStyles['MAYBE'];
-						
-						shiftStyle = `background-color: white; border: thin dashed ${currentStyle.borderColor}; ${shiftStyles.common.container} color: ${currentStyle.textColor};`;
-						timeStyle = `${shiftStyles.common.time} color: ${currentStyle.textColor};`;
-
-					} else {
-						// Default to preview/unconfirmed styling
-						const currentStyle = statusStyles[shift.shiftStatus] || statusStyles['MAYBE'];
-						
-						shiftStyle = `background-color: white; border: thin dashed ${currentStyle.borderColor}; ${shiftStyles.common.container} color: ${currentStyle.textColor};`;
-						timeStyle = `${shiftStyles.common.time} color: ${currentStyle.textColor};`;
+				// Add hover class for all shifts with notes
+				const hoverClass = notesText ? ' shift-with-notes' : '';
+				
+				htmlParts.push(`<div class="${shiftClass}${hoverClass}">`);
+				
+				// Only show time for non-allDay shifts
+				if (!isAllDay) {
+					const notesIndicator = notesText ? ' ⓘ' : '';
+					htmlParts.push(`<div class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${notesIndicator}</div>`);
+				} else {
+					// For allDay shifts, just show "ALL DAY"
+					const notesIndicator = notesText ? ' ⓘ' : '';
+					htmlParts.push(`<div class="shift-time">ALL DAY${notesIndicator}</div>`);
+				}
+				
+				// Show content based on shift type
+				if (isUnavailable || isAllDay) {
+					// For unavailable/allDay shifts, show notes as primary content
+					if (displayText) {
+						htmlParts.push(`<div class="shift-notes">${escapeHtml(displayText)}</div>`);
 					}
-					
-					// Location bubble styling based on shift status
-					let locationStyle = shiftStyles.location.base;
-					
-					if (isUnavailable) {
-						const locationBg = locationBackgrounds['unavailable'];
-						locationStyle += ` background: ${locationBg}; color: var(--gv-text-base);`;
-					} else if (isAllDay) {
-						const locationBg = locationBackgrounds['allDay'];
-						locationStyle += ` background: ${locationBg}; color: var(--gv-text-base);`;
-					} else if (isConfirmed) {
-						// Confirmed shift location styling - solid colored background
-						const locationBg = locationBackgrounds[shift.shiftStatus] || locationBackgrounds['MAYBE'];
-						locationStyle += ` background: ${locationBg}; color: var(--gv-text-base);`;
-					} else if (isPublished) {
-						// Published shift location styling - solid colored background with solid border
-						const locationBg = locationBackgrounds[shift.shiftStatus] || locationBackgrounds['MAYBE'];
-						locationStyle += ` background: ${locationBg}; color: var(--gv-text-base); border: 1px solid ${locationBg.replace('color-mix(in srgb, ', '').replace(')', '').split(',')[0]};`;
-					} else if (shift.isPreview || isUnconfirmed) {
-						// Preview or unconfirmed shift location styling - transparent background with dashed border
-						const currentStyle = statusStyles[shift.shiftStatus] || statusStyles['MAYBE'];
-						locationStyle += ` background: transparent; color: var(--gv-text-base); border: 1px dashed ${currentStyle.borderColor};`;
-					} else {
-						// Default to preview/unconfirmed styling - transparent with dashed border
-						const currentStyle = statusStyles[shift.shiftStatus] || statusStyles['MAYBE'];
-						locationStyle += ` background: transparent; color: var(--gv-text-base); border: 1px dashed ${currentStyle.borderColor};`;
+				} else {
+					// For regular shifts, show location and notes
+					if (locationText) {
+						htmlParts.push(`<div class="${locationClass}" title="${escapeHtml(locationText)}">${escapeHtml(locationText)}</div>`);
 					}
-					
-					// Add hover class for all shifts with notes
-					const hoverClass = notesText ? ' shift-with-notes' : '';
-					
-					htmlParts.push(`<div class="shift-container${hoverClass}" style="${shiftStyle}">`);
-					
-					// Only show time for non-allDay shifts
-					if (!isAllDay) {
-						// For unavailable shifts that are not all day, just show time without "Unavailable" text
-						const displayStatusText = isUnavailable ? '' : statusText;
-						const notesIndicator = notesText ? ' ⓘ' : '';
-						htmlParts.push(`<div style="${timeStyle}">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${escapeHtml(displayStatusText)}${notesIndicator}</div>`);
-					} else {
-						// For allDay shifts (regardless of unavailable status), just show "All Day"
-						const notesIndicator = notesText ? ' ⓘ' : '';
-						htmlParts.push(`<div style="${timeStyle}">ALL DAY${notesIndicator}</div>`);
+					if (notesText) {
+						htmlParts.push(`<div class="shift-notes">${escapeHtml(notesText)}</div>`);
 					}
-					
-					// Show content based on shift type
-					if (isUnavailable || isAllDay) {
-						// For unavailable/allDay shifts, show notes as primary content
-						if (displayText) {
-							htmlParts.push(`<div class="shift-notes" style="${shiftStyles.notes}">${escapeHtml(displayText)}</div>`);
-						}
-					} else {
-						// For regular shifts, show location and notes
-						if (locationText) {
-							htmlParts.push(`<div style="${locationStyle}" title="${escapeHtml(locationText)}">${escapeHtml(locationText)}</div>`);
-						}
-						if (notesText) {
-							htmlParts.push(`<div class="shift-notes" style="${shiftStyles.notes}">${escapeHtml(notesText)}</div>`);
-						}
-					}
-					
-					htmlParts.push(`</div>`);
+				}
+				
+				htmlParts.push(`</div>`);
 				});
 			}
 			
@@ -581,13 +430,5 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		</table>
 	</div>`);
 	
-		return htmlParts.join('');
-	} catch (error) {
-		// Return a visible error message so we know what went wrong
-		return `<div style="padding: 20px; color: red; border: 2px solid red; border-radius: 8px; margin: 20px;">
-			<h3>Error rendering roster table</h3>
-			<p><strong>Error:</strong> ${error.message}</p>
-			<pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow: auto;">${error.stack}</pre>
-		</div>`;
-	}
+	return htmlParts.join('');
 }
