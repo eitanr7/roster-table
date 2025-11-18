@@ -1,53 +1,53 @@
 [
 	{
-	  "kind": "column",
-	  "name": "Roster Table",
-	  "description": "Generates a styled HTML timetable for facilitators with their shifts",
-	  "author": "Eitan Ritz <mail@eitanritz.net>",
-	  "params": [
-		{
-		  "name": "facilitatorsData",
-		  "displayName": "Facilitators Data (JSON)",
-		  "type": "string"
-		},
-		{
-		  "name": "shiftsData",
-		  "displayName": "Shifts Data (JSON)",
-		  "type": "string"
-		},
-		{
-		  "name": "startDate",
-		  "displayName": "Start Date (ISO)",
-		  "type": "string"
-		},
-		{
-		  "name": "endDate",
-		  "displayName": "End Date (ISO)",
-		  "type": "string"
-		},
-		{
-		  "name": "locations",
-		  "displayName": "Locations (JSON)",
-		  "type": "string"
-		},
-		{
-		  "name": "previewShift",
-		  "displayName": "Preview Shift (JSON)",
-		  "type": "string"
-		},
-		{
-		  "name": "previewFacs",
-		  "displayName": "Preview Facilitators",
-		  "type": "string"
-		},
-		{
-		  "name": "state",
-		  "displayName": "State",
-		  "type": "string"
+		"kind": "column",
+		"name": "Roster Table",
+		"description": "Generates a styled HTML timetable for facilitators with their shifts",
+		"author": "Eitan Ritz <mail@eitanritz.net>",
+		"params": [
+			{
+				"name": "facilitatorsData",
+				"displayName": "Facilitators Data (JSON)",
+				"type": "string"
+			},
+			{
+				"name": "shiftsData",
+				"displayName": "Shifts Data (JSON)",
+				"type": "string"
+			},
+			{
+				"name": "startDate",
+				"displayName": "Start Date",
+				"type": "string"
+			},
+			{
+				"name": "endDate",
+				"displayName": "End Date",
+				"type": "string"
+			},
+			{
+				"name": "locations",
+				"displayName": "Locations (JSON)",
+				"type": "string"
+			},
+			{
+				"name": "previewShift",
+				"displayName": "Preview Shift (JSON)",
+				"type": "string"
+			},
+			{
+				"name": "previewFacs",
+				"displayName": "Preview Facilitators",
+				"type": "string"
+			},
+			{
+				"name": "state",
+				"displayName": "State",
+				"type": "string"
+			}
+		],
+		"result": {
+			"type": "string"
 		}
-	  ],
-	  "result": {
-		"type": "string"
-	  }
 	}
-  ]
+]
