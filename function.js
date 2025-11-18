@@ -1,18 +1,26 @@
 window.function = function (facilitatorsData, shiftsData, startDate, endDate, locations, previewShift, previewFacs, state) {
-	// Extract the .value from each parameter and assign default values for undefined inputs
-	const facilitators = facilitatorsData.value ?? "[]";
-	const shifts = shiftsData.value ?? "[]";
-	const start = startDate.value ?? "2027-05-03T00:00:00.000Z";
-	const end = endDate.value ?? "2027-05-09T23:59:00.000Z";
-	const locationsValue = locations.value ?? "";
-	const preview = previewShift.value ?? "{}";
-	const previewFacilitators = previewFacs.value ?? "";
-	const stateValue = state.value ?? "VIC";
-  
-	// Return undefined if required inputs are missing
-	if (!facilitators || !shifts) {
-		return undefined;
-	}
+	try {
+		// Extract the .value from each parameter and assign default values for undefined inputs
+		const facilitators = facilitatorsData.value ?? "[]";
+		const shifts = shiftsData.value ?? "[]";
+		const start = startDate.value ?? "2027-05-03T00:00:00.000Z";
+		const end = endDate.value ?? "2027-05-09T23:59:00.000Z";
+		const locationsValue = locations.value ?? "";
+		let preview = previewShift.value ?? "{}";
+		// Handle edge cases where preview might be null, undefined, or empty string
+		if (!preview || preview === "" || preview === "null" || preview === "undefined") {
+			preview = "{}";
+		}
+		const previewFacilitators = previewFacs.value ?? "";
+		const stateValue = state.value ?? "VIC";
+	  
+		console.log('Preview value:', preview, 'Type:', typeof preview);
+		console.log('Preview facilitators:', previewFacilitators);
+		
+		// Return undefined if required inputs are missing
+		if (!facilitators || !shifts) {
+			return undefined;
+		}
 	
 	// Reusable style definitions
 	const statusStyles = {
@@ -269,10 +277,12 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	
 	// Add preview shifts for each faculty member in previewFacs
 	if (preview && preview !== "{}" && previewFacilitators) {
+		console.log('Processing preview shift...');
 		// Parse preview shift data (Glide sends as JSON string)
 		let previewShiftObj = null;
 		try {
 			previewShiftObj = JSON.parse(preview);
+			console.log('Parsed preview object:', previewShiftObj);
 		} catch (e) {
 			console.error('Failed to parse previewShift:', e);
 			previewShiftObj = null;
@@ -280,6 +290,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		
 		// Check if the object is empty (has no keys)
 		const isEmptyObject = previewShiftObj && Object.keys(previewShiftObj).length === 0;
+		console.log('Is empty object?', isEmptyObject);
 		
 		// Validate that preview shift has required fields and they're not empty
 		if (previewShiftObj && 
@@ -290,6 +301,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			typeof previewShiftObj.endDate === 'string' &&
 			previewShiftObj.startDate.length > 0 &&
 			previewShiftObj.endDate.length > 0) {
+			console.log('Adding preview shift for facilitators:', previewFacilitators);
 			
 			const previewFacsArray = [...new Set(previewFacilitators.split(',').map(email => email.trim()).filter(email => email))];
 			
@@ -618,7 +630,19 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		</table>
 	</div>`);
 	
-	let final = htmlParts.join('');
+		let final = htmlParts.join('');
+		
+		console.log('Function completed successfully, returning HTML of length:', final.length);
 
-	return final;
+		return final;
+	} catch (error) {
+		console.error('Error in roster table function:', error);
+		console.error('Error stack:', error.stack);
+		// Return a visible error message so we know what went wrong
+		return `<div style="padding: 20px; color: red; border: 2px solid red; border-radius: 8px; margin: 20px;">
+			<h3>Error rendering roster table</h3>
+			<p><strong>Error:</strong> ${error.message}</p>
+			<pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow: auto;">${error.stack}</pre>
+		</div>`;
+	}
 }
