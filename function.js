@@ -58,7 +58,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	// Handle JSON strings from Glide
 	// Glide sends comma-separated objects without array brackets, so we wrap them
 	const facilitatorsArray = JSON.parse(`[${facilitators}]`);
-	const shiftsArray = JSON.parse(shifts);
+	const shiftsArray = JSON.parse(`[${shifts}]`);
 	
 	// Parse locations data if provided
 	let locationsArray = null;
