@@ -140,19 +140,24 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		return isNaN(timeValue) ? null : timeValue;
 	}
 
+	// Helper to verify we have a plain object
+	function isPlainObject(value) {
+		return value !== null && typeof value === 'object' && !Array.isArray(value);
+	}
+
 	// Handle JSON strings from Glide
 	// Glide sends comma-separated objects without array brackets, so we wrap them
-	const facilitatorsArray = parseGlideArrayString(facilitators);
-	const shiftsArray = parseGlideArrayString(shifts);
+	const facilitatorsArray = parseGlideArrayString(facilitators).filter(isPlainObject);
+	const shiftsArray = parseGlideArrayString(shifts).filter(isPlainObject);
 	
 	// Parse locations data if provided
-	const locationsArray = parseGlideArrayString(locationsValue);
+	const locationsArray = parseGlideArrayString(locationsValue).filter(isPlainObject);
 	
 	// Create a map of locationID to location name
 	const locationMap = {};
 	if (Array.isArray(locationsArray) && locationsArray.length > 0) {
 		locationsArray.forEach(location => {
-			if (location && location.rowID) {
+			if (location?.rowID) {
 				locationMap[location.rowID] = location.name || '';
 			}
 		});
@@ -175,6 +180,9 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const regularShifts = [];
 	
 	shiftsArray.forEach(shift => {
+		if (!isPlainObject(shift)) {
+			return;
+		}
 		const isCalDate = shift.calDate === 'true' || shift.calDate === true;
 		const isClosedDay = shift.closedDay === 'true' || shift.closedDay === true;
 		
@@ -219,6 +227,9 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const shiftsByDate = {};
 	
 	regularShifts.forEach(shift => {
+		if (!isPlainObject(shift)) {
+			return;
+		}
 		const date = parseDateString(shift.date); // Get YYYY-MM-DD format (cached)
 		if (!date) return; // Skip if date parsing failed
 		allDates.add(date); // Also add dates from shifts in case they're outside the range
@@ -227,7 +238,10 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			shiftsByDate[date] = {};
 		}
 		
-		const facilitatorEmail = shift.facilitator;
+		const facilitatorEmail = typeof shift.facilitator === 'string' ? shift.facilitator.trim() : '';
+		if (!facilitatorEmail) {
+			return;
+		}
 		if (!shiftsByDate[date][facilitatorEmail]) {
 			shiftsByDate[date][facilitatorEmail] = [];
 		}
@@ -270,8 +284,12 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					
 					// Create preview shift object for each faculty member
 					previewFacsArray.forEach(facEmail => {
-						if (!shiftsByDate[previewDate][facEmail]) {
-							shiftsByDate[previewDate][facEmail] = [];
+						const trimmedEmail = facEmail.trim();
+						if (!trimmedEmail) {
+							return;
+						}
+						if (!shiftsByDate[previewDate][trimmedEmail]) {
+							shiftsByDate[previewDate][trimmedEmail] = [];
 						}
 					
 						const previewShiftData = {
@@ -286,7 +304,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 							allDay: false
 						};
 					
-						shiftsByDate[previewDate][facEmail].push(previewShiftData);
+						shiftsByDate[previewDate][trimmedEmail].push(previewShiftData);
 					});
 				}
 			}
@@ -338,6 +356,13 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	
 	// Add rows for each facilitator
 	sortedFacilitators.forEach((facilitator, index) => {
+		if (!isPlainObject(facilitator)) {
+			return;
+		}
+		const facilitatorEmail = typeof facilitator.email === 'string' ? facilitator.email.trim() : '';
+		if (!facilitatorEmail) {
+			return;
+		}
 		const isFirstRow = index === 0;
 		const rowClass = isFirstRow ? 'roster-row-first' : 'roster-row-regular';
 		
@@ -347,8 +372,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		let totalHours = 0;
 		
 		sortedDates.forEach(date => {
-			const facilitatorShifts = shiftsByDate[date] && shiftsByDate[date][facilitator.email] 
-				? shiftsByDate[date][facilitator.email] 
+			const facilitatorShifts = shiftsByDate[date] && shiftsByDate[date][facilitatorEmail] 
+				? shiftsByDate[date][facilitatorEmail] 
 				: [];
 			
 			facilitatorShifts.forEach(shift => {
@@ -395,7 +420,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					<div class="facilitator-info">
 						${avatarHtml}
 						<div class="facilitator-details">
-							<span>${escapeHtml(facilitator.fullName)}</span>
+							<span>${escapeHtml(facilitator.fullName || '')}</span>
 							<span class="facilitator-hours">${hoursDisplay}</span>
 						</div>
 					</div>
@@ -415,8 +440,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			}
 			htmlParts.push(`<td class="${cellClass} roster-cell-content${dateClass}">`);
 			
-			const facilitatorShifts = shiftsByDate[date] && shiftsByDate[date][facilitator.email] 
-				? shiftsByDate[date][facilitator.email] 
+			const facilitatorShifts = shiftsByDate[date] && shiftsByDate[date][facilitatorEmail] 
+				? shiftsByDate[date][facilitatorEmail] 
 				: [];
 			
 			// Shifts are already pre-sorted, no need to sort again
