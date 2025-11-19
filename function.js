@@ -251,63 +251,71 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	
 	// Add preview shifts for each faculty member in previewFacs
 	if (preview && preview !== "{}" && previewFacilitators) {
-		// Parse preview shift data (Glide sends as JSON string)
-		let previewShiftObj = null;
 		try {
-			previewShiftObj = JSON.parse(preview);
-		} catch (e) {
-			previewShiftObj = null;
-		}
-		
-		// Validate that preview shift has required fields and they're not empty
-		if (previewShiftObj && 
-			typeof previewShiftObj === 'object' &&
-			!Array.isArray(previewShiftObj) &&
-			Object.keys(previewShiftObj).length > 0) {
+			// Parse preview shift data (Glide sends as JSON string)
+			let previewShiftObj = null;
+			try {
+				previewShiftObj = JSON.parse(preview);
+			} catch (e) {
+				previewShiftObj = null;
+			}
 			
-			const previewStartDate = normalizeInputString(previewShiftObj.startDate).trim();
-			const previewEndDate = normalizeInputString(previewShiftObj.endDate).trim();
-			
-			if (previewStartDate && previewEndDate) {
-				const previewFacsArray = [...new Set(previewFacilitators.split(',').map(email => email.trim()).filter(email => email))];
+			// Validate that preview shift has required fields and they're not empty
+			if (previewShiftObj && 
+				typeof previewShiftObj === 'object' &&
+				!Array.isArray(previewShiftObj) &&
+				Object.keys(previewShiftObj).length > 0) {
 				
-				// Parse preview shift date
-				const previewDate = parseDateString(previewStartDate);
+				const previewStartDate = normalizeInputString(previewShiftObj.startDate).trim();
+				const previewEndDate = normalizeInputString(previewShiftObj.endDate).trim();
 				
-				// Validate that the date was parsed successfully and we have facilitators
-				if (previewDate && previewFacsArray.length > 0) {
-					allDates.add(previewDate);
+				if (previewStartDate && previewEndDate) {
+					const previewFacsArray = [...new Set(previewFacilitators.split(',').map(email => email.trim()).filter(email => email))];
 					
-					if (!shiftsByDate[previewDate]) {
-						shiftsByDate[previewDate] = {};
+					// Parse preview shift date
+					const previewDate = parseDateString(previewStartDate);
+					
+					// Validate that the date was parsed successfully and we have facilitators
+					if (previewDate && previewFacsArray.length > 0) {
+						allDates.add(previewDate);
+						
+						if (!shiftsByDate[previewDate]) {
+							shiftsByDate[previewDate] = {};
+						}
+						
+						// Create preview shift object for each faculty member
+						previewFacsArray.forEach(facEmail => {
+							const trimmedEmail = facEmail.trim();
+							if (!trimmedEmail) {
+								return;
+							}
+							if (!shiftsByDate[previewDate][trimmedEmail]) {
+								shiftsByDate[previewDate][trimmedEmail] = [];
+							}
+						
+							const previewShiftData = {
+								startDateTime: previewStartDate,
+								endDateTime: previewEndDate,
+								locationID: null, // We'll use locationName directly
+								locationName: normalizeInputString(previewShiftObj.locationName).trim(),
+								notes: normalizeInputString(previewShiftObj.notes).trim(),
+								shiftStatus: previewShiftObj.status || 'MAYBE', // Use the status from previewShift, default to MAYBE
+								isPreview: true,
+								unavailable: false,
+								allDay: false
+							};
+						
+							shiftsByDate[previewDate][trimmedEmail].push(previewShiftData);
+						});
 					}
-					
-					// Create preview shift object for each faculty member
-					previewFacsArray.forEach(facEmail => {
-						const trimmedEmail = facEmail.trim();
-						if (!trimmedEmail) {
-							return;
-						}
-						if (!shiftsByDate[previewDate][trimmedEmail]) {
-							shiftsByDate[previewDate][trimmedEmail] = [];
-						}
-					
-						const previewShiftData = {
-							startDateTime: previewStartDate,
-							endDateTime: previewEndDate,
-							locationID: null, // We'll use locationName directly
-							locationName: normalizeInputString(previewShiftObj.locationName).trim(),
-							notes: normalizeInputString(previewShiftObj.notes).trim(),
-							shiftStatus: previewShiftObj.status || 'MAYBE', // Use the status from previewShift, default to MAYBE
-							isPreview: true,
-							unavailable: false,
-							allDay: false
-						};
-					
-						shiftsByDate[previewDate][trimmedEmail].push(previewShiftData);
-					});
 				}
 			}
+		} catch (error) {
+			console.error('Roster column failed to add preview shift', {
+				error,
+				previewRaw: preview,
+				previewFacilitatorsRaw: previewFacilitators
+			});
 		}
 	}
 	
