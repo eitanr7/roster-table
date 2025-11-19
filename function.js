@@ -6,26 +6,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const end = normalizeInputString(endDate?.value) || "2027-05-09T23:59:00.000Z";
 	const locationsValue = normalizeInputString(locations?.value);
 	let preview = normalizeInputString(previewShift?.value ?? "{}");
-	let previewFacilitators = '';
-	const previewFacsValue = previewFacs?.value;
-	if (typeof previewFacsValue === 'string') {
-		previewFacilitators = previewFacsValue;
-	} else if (Array.isArray(previewFacsValue)) {
-		previewFacilitators = previewFacsValue.join(',');
-	} else if (previewFacsValue !== undefined && previewFacsValue !== null) {
-		previewFacilitators = String(previewFacsValue);
-	}
-	previewFacilitators = previewFacilitators.trim();
-	if (previewFacilitators.startsWith('[') && previewFacilitators.endsWith(']')) {
-		try {
-			const parsedPreviewFacs = JSON.parse(previewFacilitators);
-			if (Array.isArray(parsedPreviewFacs)) {
-				previewFacilitators = parsedPreviewFacs.join(',');
-			}
-		} catch (error) {
-			console.error('Failed to parse preview facilitator list:', error);
-		}
-	}
+	const previewFacilitatorsRaw = previewFacs?.value;
+	const previewFacilitatorsList = parsePreviewFacilitatorsInput(previewFacilitatorsRaw);
 	const stateValue = typeof state?.value === 'string' && state.value.trim() ? state.value : "VIC";
 	
 	// Handle edge cases where preview might be null, undefined, or empty string
@@ -42,6 +24,60 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	// Helper to get status class name
 	function getStatusClass(status) {
 		return 'status-' + String(status || 'maybe').toLowerCase();
+	}
+
+	// Helper to sanitize facilitator identifiers/emails
+	function sanitizeFacilitatorIdentifier(value) {
+		if (value === undefined || value === null) {
+			return '';
+		}
+		const stringValue = typeof value === 'string' ? value : String(value);
+		return stringValue.trim().replace(/^['"]+|['"]+$/g, '');
+	}
+
+	// Helper to parse preview facilitator input into a clean string array
+	function parsePreviewFacilitatorsInput(rawValue) {
+		if (Array.isArray(rawValue)) {
+			return rawValue
+				.map(entry => sanitizeFacilitatorIdentifier(entry))
+				.filter(Boolean);
+		}
+
+		let normalized = '';
+		if (typeof rawValue === 'string') {
+			normalized = rawValue.trim();
+		} else if (rawValue !== undefined && rawValue !== null) {
+			normalized = String(rawValue).trim();
+		}
+
+		if (!normalized) {
+			return [];
+		}
+
+		const looksLikeJson = (normalized.startsWith('[') && normalized.endsWith(']'))
+			|| (normalized.startsWith('{') && normalized.endsWith('}'))
+			|| (normalized.startsWith('"') && normalized.endsWith('"'));
+
+		if (looksLikeJson) {
+			try {
+				const parsed = JSON.parse(normalized);
+				if (Array.isArray(parsed)) {
+					return parsed
+						.map(entry => sanitizeFacilitatorIdentifier(entry))
+						.filter(Boolean);
+				}
+				if (typeof parsed === 'string') {
+					normalized = parsed.trim();
+				}
+			} catch (error) {
+				// Fall through to delimiter split
+			}
+		}
+
+		return normalized
+			.split(/[,\n;]/)
+			.map(entry => sanitizeFacilitatorIdentifier(entry))
+			.filter(Boolean);
 	}
 
 	// Helper to normalize incoming Glide strings / objects
@@ -238,7 +274,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			shiftsByDate[date] = {};
 		}
 		
-		const facilitatorEmail = typeof shift.facilitator === 'string' ? shift.facilitator.trim() : '';
+		const facilitatorEmail = sanitizeFacilitatorIdentifier(shift.facilitator);
 		if (!facilitatorEmail) {
 			return;
 		}
@@ -250,7 +286,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	});
 	
 	// Add preview shifts for each faculty member in previewFacs
-	if (preview && preview !== "{}" && previewFacilitators) {
+	if (preview && preview !== "{}" && previewFacilitatorsList.length > 0) {
 		try {
 			// Parse preview shift data (Glide sends as JSON string)
 			let previewShiftObj = null;
@@ -270,7 +306,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				const previewEndDate = normalizeInputString(previewShiftObj.endDate).trim();
 				
 				if (previewStartDate && previewEndDate) {
-					const previewFacsArray = [...new Set(previewFacilitators.split(',').map(email => email.trim()).filter(email => email))];
+					const previewFacsArray = [...new Set(previewFacilitatorsList)];
 					
 					// Parse preview shift date
 					const previewDate = parseDateString(previewStartDate);
@@ -314,7 +350,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			console.error('Roster column failed to add preview shift', {
 				error,
 				previewRaw: preview,
-				previewFacilitatorsRaw: previewFacilitators
+				previewFacilitatorsRaw,
+				previewFacilitatorsList
 			});
 		}
 	}
@@ -367,7 +404,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		if (!isPlainObject(facilitator)) {
 			return;
 		}
-		const facilitatorEmail = typeof facilitator.email === 'string' ? facilitator.email.trim() : '';
+		const facilitatorEmail = sanitizeFacilitatorIdentifier(facilitator.email);
 		if (!facilitatorEmail) {
 			return;
 		}
