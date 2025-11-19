@@ -1,20 +1,17 @@
 window.function = function (facilitatorsData, shiftsData, startDate, endDate, locations, previewShift, previewFacs, state) {
 	// Extract the .value from each parameter and assign default values for undefined inputs
-	const facilitators = normalizeInputString(facilitatorsData?.value ?? "[]");
-	const shifts = normalizeInputString(shiftsData?.value ?? "[]");
-	const start = normalizeInputString(startDate?.value) || "2027-05-03T00:00:00.000Z";
-	const end = normalizeInputString(endDate?.value) || "2027-05-09T23:59:00.000Z";
-	const locationsValue = normalizeInputString(locations?.value);
-	let preview = normalizeInputString(previewShift?.value ?? "{}");
-	const previewFacilitatorsRaw = previewFacs?.value;
-	const previewFacilitatorsList = parsePreviewFacilitatorsInput(previewFacilitatorsRaw);
-	const stateValue = typeof state?.value === 'string' && state.value.trim() ? state.value : "VIC";
-	
+	const facilitators = facilitatorsData.value ?? "[]";
+	const shifts = shiftsData.value ?? "[]";
+	const start = startDate.value ?? "2027-05-03T00:00:00.000Z";
+	const end = endDate.value ?? "2027-05-09T23:59:00.000Z";
+	const locationsValue = locations.value ?? "";
+	let preview = previewShift.value ?? "{}";
 	// Handle edge cases where preview might be null, undefined, or empty string
-	preview = preview ? preview.trim() : '';
-	if (!preview || preview === "null" || preview === "undefined") {
+	if (!preview || preview === "" || preview === "null" || preview === "undefined") {
 		preview = "{}";
 	}
+	const previewFacilitators = previewFacs.value ?? "";
+	const stateValue = state.value ?? "VIC";
 	
 	// Return undefined if required inputs are missing //
 	if (!facilitators || !shifts) {
@@ -23,96 +20,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	
 	// Helper to get status class name
 	function getStatusClass(status) {
-		return 'status-' + String(status || 'maybe').toLowerCase();
-	}
-
-	// Helper to sanitize facilitator identifiers/emails
-	function sanitizeFacilitatorIdentifier(value) {
-		if (value === undefined || value === null) {
-			return '';
-		}
-		const stringValue = typeof value === 'string' ? value : String(value);
-		return stringValue.trim().replace(/^['"]+|['"]+$/g, '');
-	}
-
-	// Helper to parse preview facilitator input into a clean string array
-	function parsePreviewFacilitatorsInput(rawValue) {
-		if (Array.isArray(rawValue)) {
-			return rawValue
-				.map(entry => sanitizeFacilitatorIdentifier(entry))
-				.filter(Boolean);
-		}
-
-		let normalized = '';
-		if (typeof rawValue === 'string') {
-			normalized = rawValue.trim();
-		} else if (rawValue !== undefined && rawValue !== null) {
-			normalized = String(rawValue).trim();
-		}
-
-		if (!normalized) {
-			return [];
-		}
-
-		const looksLikeJson = (normalized.startsWith('[') && normalized.endsWith(']'))
-			|| (normalized.startsWith('{') && normalized.endsWith('}'))
-			|| (normalized.startsWith('"') && normalized.endsWith('"'));
-
-		if (looksLikeJson) {
-			try {
-				const parsed = JSON.parse(normalized);
-				if (Array.isArray(parsed)) {
-					return parsed
-						.map(entry => sanitizeFacilitatorIdentifier(entry))
-						.filter(Boolean);
-				}
-				if (typeof parsed === 'string') {
-					normalized = parsed.trim();
-				}
-			} catch (error) {
-				// Fall through to delimiter split
-			}
-		}
-
-		return normalized
-			.split(/[,\n;]/)
-			.map(entry => sanitizeFacilitatorIdentifier(entry))
-			.filter(Boolean);
-	}
-
-	// Helper to normalize incoming Glide strings / objects
-	function normalizeInputString(value) {
-		if (typeof value === 'string') {
-			return value;
-		}
-		if (value === undefined || value === null) {
-			return '';
-		}
-		try {
-			return JSON.stringify(value);
-		} catch (error) {
-			return String(value);
-		}
-	}
-
-	// Helper to parse Glide JSON lists that may be missing brackets
-	function parseGlideArrayString(dataString) {
-		if (!dataString) {
-			return [];
-		}
-		const trimmed = dataString.trim();
-		if (!trimmed) {
-			return [];
-		}
-		const hasWrapper = trimmed.startsWith('[') && trimmed.endsWith(']');
-		const jsonString = hasWrapper ? trimmed : `[${trimmed}]`;
-		try {
-			const parsed = JSON.parse(jsonString);
-			return Array.isArray(parsed) ? parsed : [];
-		} catch (error) {
-			console.error('Failed to parse list input:', error);
-			return [];
-		}
+		return 'status-' + (status || 'maybe').toLowerCase();
 	}
 
 	// Helper function to escape HTML to prevent XSS
@@ -130,72 +38,44 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 
 	// Helper function to parse date string to YYYY-MM-DD format
 	function parseDateString(dateValue) {
-		if (dateValue === undefined || dateValue === null) return null;
-		const dateString = typeof dateValue === 'string'
-			? dateValue
-			: (dateValue instanceof Date ? dateValue.toISOString() : String(dateValue));
-		if (!dateString) return null;
-		if (dateString.includes('T')) {
-			return dateString.split('T')[0];
+		if (!dateValue) return null;
+		if (dateValue.includes('T')) {
+			return dateValue.split('T')[0];
 		}
-		const parsed = new Date(dateString);
+		const parsed = new Date(dateValue);
 		return isNaN(parsed.getTime()) ? null : parsed.toISOString().split('T')[0];
 	}
 
 	// Helper function to format time (12-hour format)
 	function formatTime(timeStr) {
-		if (!timeStr) return '';
-		const parts = timeStr.split(':');
-		const hours = parts[0] ?? '00';
-		const minutes = parts[1] ?? '00';
+		const [hours, minutes] = timeStr.split(':');
 		const hour24 = parseInt(hours, 10);
-		if (isNaN(hour24)) {
-			return '';
-		}
 		const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
 		const ampm = hour24 >= 12 ? 'PM' : 'AM';
 		return `${hour12}:${minutes} ${ampm}`;
 	}
 
-	// Helper to safely extract HH:MM from datetime values
-	function getTimePortion(dateTimeValue) {
-		if (!dateTimeValue) {
-			return '';
-		}
-		const dateObj = new Date(dateTimeValue);
-		return isNaN(dateObj.getTime()) ? '' : dateObj.toISOString().substr(11, 5);
-	}
-
-	// Helper to safely get timestamp from datetime values
-	function getTimeValue(dateTimeValue) {
-		if (!dateTimeValue) {
-			return null;
-		}
-		const dateObj = new Date(dateTimeValue);
-		const timeValue = dateObj.getTime();
-		return isNaN(timeValue) ? null : timeValue;
-	}
-
-	// Helper to verify we have a plain object
-	function isPlainObject(value) {
-		return value !== null && typeof value === 'object' && !Array.isArray(value);
-	}
-
 	// Handle JSON strings from Glide
 	// Glide sends comma-separated objects without array brackets, so we wrap them
-	const facilitatorsArray = parseGlideArrayString(facilitators).filter(isPlainObject);
-	const shiftsArray = parseGlideArrayString(shifts).filter(isPlainObject);
+	const facilitatorsArray = JSON.parse(`[${facilitators}]`);
+	const shiftsArray = JSON.parse(`[${shifts}]`);
 	
 	// Parse locations data if provided
-	const locationsArray = parseGlideArrayString(locationsValue).filter(isPlainObject);
+	let locationsArray = null;
+	if (locationsValue) {
+		try {
+			// Glide sends comma-separated objects without array brackets, so we wrap them
+			locationsArray = JSON.parse(`[${locationsValue}]`);
+		} catch (e) {
+			console.error('Failed to parse locations:', e);
+		}
+	}
 	
 	// Create a map of locationID to location name
 	const locationMap = {};
-	if (Array.isArray(locationsArray) && locationsArray.length > 0) {
+	if (locationsArray && Array.isArray(locationsArray)) {
 		locationsArray.forEach(location => {
-			if (location?.rowID) {
-				locationMap[location.rowID] = location.name || '';
-			}
+			locationMap[location.rowID] = location.name;
 		});
 	}
 	
@@ -208,7 +88,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	// Helper function to check state match
 	function checkStateMatch(shiftState) {
 		if (!shiftState) return !cityState;
-		const shiftStates = String(shiftState).split(',').map(s => s.trim());
+		const shiftStates = shiftState.split(',').map(s => s.trim());
 		return !cityState || shiftStates.includes(cityState);
 	}
 	
@@ -216,9 +96,6 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const regularShifts = [];
 	
 	shiftsArray.forEach(shift => {
-		if (!isPlainObject(shift)) {
-			return;
-		}
 		const isCalDate = shift.calDate === 'true' || shift.calDate === true;
 		const isClosedDay = shift.closedDay === 'true' || shift.closedDay === true;
 		
@@ -238,7 +115,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	});
 	
 	// Parse date range from startDate and endDate parameters
-	const allDates = new Set();
+	let allDates = new Set();
 	
 	if (start && end) {
 		// Parse dates without timezone conversion
@@ -263,9 +140,6 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const shiftsByDate = {};
 	
 	regularShifts.forEach(shift => {
-		if (!isPlainObject(shift)) {
-			return;
-		}
 		const date = parseDateString(shift.date); // Get YYYY-MM-DD format (cached)
 		if (!date) return; // Skip if date parsing failed
 		allDates.add(date); // Also add dates from shifts in case they're outside the range
@@ -274,10 +148,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			shiftsByDate[date] = {};
 		}
 		
-		const facilitatorEmail = sanitizeFacilitatorIdentifier(shift.facilitator);
-		if (!facilitatorEmail) {
-			return;
-		}
+		const facilitatorEmail = shift.facilitator;
 		if (!shiftsByDate[date][facilitatorEmail]) {
 			shiftsByDate[date][facilitatorEmail] = [];
 		}
@@ -286,73 +157,58 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	});
 	
 	// Add preview shifts for each faculty member in previewFacs
-	if (preview && preview !== "{}" && previewFacilitatorsList.length > 0) {
+	if (preview && preview !== "{}" && previewFacilitators) {
+		// Parse preview shift data (Glide sends as JSON string)
+		let previewShiftObj = null;
 		try {
-			// Parse preview shift data (Glide sends as JSON string)
-			let previewShiftObj = null;
-			try {
-				previewShiftObj = JSON.parse(preview);
-			} catch (e) {
-				previewShiftObj = null;
-			}
+			previewShiftObj = JSON.parse(preview);
+		} catch (e) {
+			previewShiftObj = null;
+		}
+		
+		// Validate that preview shift has required fields and they're not empty
+		if (previewShiftObj && 
+			Object.keys(previewShiftObj).length > 0 &&
+			previewShiftObj.startDate && 
+			previewShiftObj.endDate && 
+			typeof previewShiftObj.startDate === 'string' &&
+			typeof previewShiftObj.endDate === 'string' &&
+			previewShiftObj.startDate.length > 0 &&
+			previewShiftObj.endDate.length > 0) {
 			
-			// Validate that preview shift has required fields and they're not empty
-			if (previewShiftObj && 
-				typeof previewShiftObj === 'object' &&
-				!Array.isArray(previewShiftObj) &&
-				Object.keys(previewShiftObj).length > 0) {
+			const previewFacsArray = [...new Set(previewFacilitators.split(',').map(email => email.trim()).filter(email => email))];
+			
+			// Parse preview shift date
+			const previewDate = parseDateString(previewShiftObj.startDate);
+			
+			// Validate that the date was parsed successfully and we have facilitators
+			if (previewDate && previewFacsArray.length > 0) {
+				allDates.add(previewDate);
 				
-				const previewStartDate = normalizeInputString(previewShiftObj.startDate).trim();
-				const previewEndDate = normalizeInputString(previewShiftObj.endDate).trim();
-				
-				if (previewStartDate && previewEndDate) {
-					const previewFacsArray = [...new Set(previewFacilitatorsList)];
-					
-					// Parse preview shift date
-					const previewDate = parseDateString(previewStartDate);
-					
-					// Validate that the date was parsed successfully and we have facilitators
-					if (previewDate && previewFacsArray.length > 0) {
-						allDates.add(previewDate);
-						
-						if (!shiftsByDate[previewDate]) {
-							shiftsByDate[previewDate] = {};
-						}
-						
-						// Create preview shift object for each faculty member
-						previewFacsArray.forEach(facEmail => {
-							const trimmedEmail = facEmail.trim();
-							if (!trimmedEmail) {
-								return;
-							}
-							if (!shiftsByDate[previewDate][trimmedEmail]) {
-								shiftsByDate[previewDate][trimmedEmail] = [];
-							}
-						
-							const previewShiftData = {
-								startDateTime: previewStartDate,
-								endDateTime: previewEndDate,
-								locationID: null, // We'll use locationName directly
-								locationName: normalizeInputString(previewShiftObj.locationName).trim(),
-								notes: normalizeInputString(previewShiftObj.notes).trim(),
-								shiftStatus: previewShiftObj.status || 'MAYBE', // Use the status from previewShift, default to MAYBE
-								isPreview: true,
-								unavailable: false,
-								allDay: false
-							};
-						
-							shiftsByDate[previewDate][trimmedEmail].push(previewShiftData);
-						});
-					}
+				if (!shiftsByDate[previewDate]) {
+					shiftsByDate[previewDate] = {};
 				}
+				
+				// Create preview shift object for each faculty member
+				previewFacsArray.forEach(facEmail => {
+					if (!shiftsByDate[previewDate][facEmail]) {
+						shiftsByDate[previewDate][facEmail] = [];
+					}
+				
+					const previewShiftData = {
+						startDateTime: previewShiftObj.startDate,
+						endDateTime: previewShiftObj.endDate,
+						locationID: null, // We'll use locationName directly
+						locationName: previewShiftObj.locationName || '',
+						shiftStatus: previewShiftObj.status || 'MAYBE', // Use the status from previewShift, default to MAYBE
+						isPreview: true,
+						unavailable: false,
+						allDay: false
+					};
+				
+					shiftsByDate[previewDate][facEmail].push(previewShiftData);
+				});
 			}
-		} catch (error) {
-			console.error('Roster column failed to add preview shift', {
-				error,
-				previewRaw: preview,
-				previewFacilitatorsRaw,
-				previewFacilitatorsList
-			});
 		}
 	}
 	
@@ -375,19 +231,13 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	
 	// Sort facilitators by rosterOrder
 	const sortedFacilitators = [...facilitatorsArray].sort((a, b) => {
-		const facA = a || {};
-		const facB = b || {};
 		// Handle missing rosterOrder - put them at the end, sorted by name
-		if (!facA.rosterOrder && !facB.rosterOrder) {
-			const nameA = facA.fullName || '';
-			const nameB = facB.fullName || '';
-			return nameA.localeCompare(nameB);
-		}
-		if (!facA.rosterOrder) return 1;
-		if (!facB.rosterOrder) return -1;
+		if (!a.rosterOrder && !b.rosterOrder) return a.fullName.localeCompare(b.fullName);
+		if (!a.rosterOrder) return 1;
+		if (!b.rosterOrder) return -1;
 		
 		// Compare rosterOrder strings
-		return facA.rosterOrder.localeCompare(facB.rosterOrder);
+		return a.rosterOrder.localeCompare(b.rosterOrder);
 	});
 	
 	// Pre-compute today's date string in local timezone (do this before HTML generation)
@@ -401,13 +251,6 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	
 	// Add rows for each facilitator
 	sortedFacilitators.forEach((facilitator, index) => {
-		if (!isPlainObject(facilitator)) {
-			return;
-		}
-		const facilitatorEmail = sanitizeFacilitatorIdentifier(facilitator.email);
-		if (!facilitatorEmail) {
-			return;
-		}
 		const isFirstRow = index === 0;
 		const rowClass = isFirstRow ? 'roster-row-first' : 'roster-row-regular';
 		
@@ -417,8 +260,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		let totalHours = 0;
 		
 		sortedDates.forEach(date => {
-			const facilitatorShifts = shiftsByDate[date] && shiftsByDate[date][facilitatorEmail] 
-				? shiftsByDate[date][facilitatorEmail] 
+			const facilitatorShifts = shiftsByDate[date] && shiftsByDate[date][facilitator.email] 
+				? shiftsByDate[date][facilitator.email] 
 				: [];
 			
 			facilitatorShifts.forEach(shift => {
@@ -431,10 +274,10 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					}
 					
 					// Calculate hours for this shift
-					const startTimeValue = getTimeValue(shift.startDateTime);
-					const endTimeValue = getTimeValue(shift.endDateTime);
-					if (startTimeValue !== null && endTimeValue !== null && endTimeValue > startTimeValue) {
-						const durationHours = (endTimeValue - startTimeValue) / (1000 * 60 * 60); // Convert milliseconds to hours
+					if (shift.startDateTime && shift.endDateTime) {
+						const startTime = new Date(shift.startDateTime).getTime();
+						const endTime = new Date(shift.endDateTime).getTime();
+						const durationHours = (endTime - startTime) / (1000 * 60 * 60); // Convert milliseconds to hours
 						totalHours += durationHours;
 					}
 				}
@@ -465,7 +308,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					<div class="facilitator-info">
 						${avatarHtml}
 						<div class="facilitator-details">
-							<span>${escapeHtml(facilitator.fullName || '')}</span>
+							<span>${escapeHtml(facilitator.fullName)}</span>
 							<span class="facilitator-hours">${hoursDisplay}</span>
 						</div>
 					</div>
@@ -485,8 +328,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			}
 			htmlParts.push(`<td class="${cellClass} roster-cell-content${dateClass}">`);
 			
-			const facilitatorShifts = shiftsByDate[date] && shiftsByDate[date][facilitatorEmail] 
-				? shiftsByDate[date][facilitatorEmail] 
+			const facilitatorShifts = shiftsByDate[date] && shiftsByDate[date][facilitator.email] 
+				? shiftsByDate[date][facilitator.email] 
 				: [];
 			
 			// Shifts are already pre-sorted, no need to sort again
@@ -494,11 +337,13 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			if (facilitatorShifts.length > 0) {
 				facilitatorShifts.forEach(shift => {
 					// Extract time from UTC string without timezone conversion (cached)
-					const startTimeRaw = getTimePortion(shift.startDateTime);
-					const endTimeRaw = getTimePortion(shift.endDateTime);
+					const startDateTime = shift.startDateTime;
+					const endDateTime = shift.endDateTime;
+					const startTime = startDateTime ? new Date(startDateTime).toISOString().substr(11, 5) : '';
+					const endTime = endDateTime ? new Date(endDateTime).toISOString().substr(11, 5) : '';
 					
-					const startTimeFormatted = startTimeRaw ? formatTime(startTimeRaw) : '';
-					const endTimeFormatted = endTimeRaw ? formatTime(endTimeRaw) : '';
+					const startTimeFormatted = startTime ? formatTime(startTime) : '';
+					const endTimeFormatted = endTime ? formatTime(endTime) : '';
 					
 				// Pre-compute shift properties once
 				const isUnavailable = shift.unavailable === true || shift.unavailable === 'true';
