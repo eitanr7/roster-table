@@ -1,6 +1,6 @@
 window.function = function (facilitatorsData, shiftsData, startDate, endDate, locations, previewShift, previewFacs, state) {
 	// Extract the .value from each parameter and assign default values for undefined inputs
-	const facilitators = facilitatorsData.value ?? "[]";
+	const facilitators = facilitatorsData.value ?? "";
 	const shifts = shiftsData.value ?? "[]";
 	const start = startDate.value ?? "2027-05-03T00:00:00.000Z";
 	const end = endDate.value ?? "2027-05-09T23:59:00.000Z";
@@ -61,7 +61,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const shiftsArray = JSON.parse(`[${shifts}]`);
 	
 	// Return message if there are no facilitators
-	if (!facilitatorsArray || facilitatorsArray.length === 0) {
+	if (!facilitatorsArray || facilitatorsArray.length === 0 || facilitators === "[]") {
 		return '<div class="no-facilitators-message">No facilitators available</div>';
 	}
 	
