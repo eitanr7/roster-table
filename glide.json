@@ -40,11 +40,11 @@
 				"displayName": "Preview Facilitators",
 				"type": "string"
 			},
-		{
-			"name": "state",
-			"displayName": "State",
-			"type": "string"
-		}
+			{
+				"name": "state",
+				"displayName": "State",
+				"type": "string"
+			}
 	],
 	"result": {
 		"type": "string"

@@ -60,6 +60,11 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const facilitatorsArray = JSON.parse(`[${facilitators}]`);
 	const shiftsArray = JSON.parse(`[${shifts}]`);
 	
+	// Return message if there are no facilitators
+	if (!facilitatorsArray || facilitatorsArray.length === 0) {
+		return '<div class="no-facilitators-message">No facilitators available</div>';
+	}
+	
 	// Parse locations data if provided
 	let locationsArray = null;
 	if (locationsValue) {
