@@ -402,6 +402,11 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				
 				htmlParts.push(`<div class="${shiftClass}${hoverClass}">`);
 				
+				// Show "DROP REQUESTED" for dropped shifts
+				if (isDropped) {
+					htmlParts.push(`<div class="drop-requested-title">DROP REQUESTED</div>`);
+				}
+				
 				// Only show time for non-allDay shifts
 				if (!isAllDay) {
 					const notesIndicator = notesText ? ' ⓘ' : '';
