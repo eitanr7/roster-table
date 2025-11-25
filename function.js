@@ -358,7 +358,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				const isPreview = shift.isPreview === true;
 				const isConfirmed = !!shift.confirmed;
 				const isPublished = !!shift.published;
-				const isUnconfirmed = !isConfirmed && !isPreview && !isUnavailable && !isAllDay && !isPublished;
+				const isDropped = !!(shift.dropped && shift.dropped.trim() !== ''); // Check if shift has a dropped date
+				const isUnconfirmed = !isConfirmed && !isPreview && !isUnavailable && !isAllDay && !isPublished && !isDropped;
 				
 				// Get location text for all shifts
 				const locationText = shift.locationName || (shift.locationID && locationMap[shift.locationID] ? locationMap[shift.locationID] : '');
@@ -374,7 +375,11 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				let locationClass = 'shift-location';
 				const statusClass = getStatusClass(shift.shiftStatus);
 				
-				if (isUnavailable) {
+				if (isDropped) {
+					// Dropped shift styling - purple
+					shiftClass += ' shift-dropped';
+					locationClass += ' location-dropped';
+				} else if (isUnavailable) {
 					shiftClass += ' shift-unavailable';
 					locationClass += ' location-confirmed status-unavailable';
 				} else if (isAllDay) {
