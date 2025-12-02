@@ -358,7 +358,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				const isPreview = shift.isPreview === true;
 				const isConfirmed = !!shift.confirmed;
 				const isPublished = !!shift.published;
-				const isDropped = !!(shift.dropped && shift.dropped.trim() !== ''); // Check if shift has a dropped date
+				const isDropped = shift.dropped === true || shift.dropped === 'true' || (shift.dropped && typeof shift.dropped === 'string' && shift.dropped.trim() !== '' && shift.dropped.trim().toLowerCase() !== 'false'); // Check if shift has a dropped date (handles boolean true, string "true", or any non-empty text that isn't "false")
 				const isUnconfirmed = !isConfirmed && !isPreview && !isUnavailable && !isAllDay && !isPublished && !isDropped;
 				
 				// Get location text for all shifts
