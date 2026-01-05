@@ -242,9 +242,12 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		if (!a.rosterOrder && !b.rosterOrder) return a.fullName.localeCompare(b.fullName);
 		if (!a.rosterOrder) return 1;
 		if (!b.rosterOrder) return -1;
-		
-		// Compare rosterOrder strings
-		return a.rosterOrder.localeCompare(b.rosterOrder);
+
+		// Compare rosterOrder strings using simple comparison (< and >)
+		// This ensures consistent character-by-character ordering for special chars like tabs
+		if (a.rosterOrder < b.rosterOrder) return -1;
+		if (a.rosterOrder > b.rosterOrder) return 1;
+		return 0;
 	});
 	
 	// Pre-compute today's date string in local timezone (do this before HTML generation)
