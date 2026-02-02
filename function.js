@@ -456,8 +456,11 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				// Check if this shift overlaps with another
 				const isOverlapping = overlappingShiftIndices.has(shiftIndex);
 				const overlapClass = isOverlapping ? ' shift-overlapping' : '';
+				// Published but not yet confirmed
+				const isPublishedNotConfirmed = isPublished && !isConfirmed;
+				const publishedUnconfirmedClass = isPublishedNotConfirmed ? ' shift-published-unconfirmed' : '';
 				
-				htmlParts.push(`<div class="${shiftClass}${hoverClass}${overlapClass}">`);
+				htmlParts.push(`<div class="${shiftClass}${hoverClass}${overlapClass}${publishedUnconfirmedClass}">`);
 				
 				// Show "DROP REQUESTED" for dropped shifts
 				if (isDropped) {
@@ -468,15 +471,19 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				const overlapIndicatorHtml = isOverlapping 
 					? `<span class="overlap-indicator" title="This shift overlaps with another shift"></span>` 
 					: '';
+				// Orange arrow for published but not confirmed
+				const pendingConfirmationIndicatorHtml = isPublishedNotConfirmed 
+					? `<span class="pending-confirmation-indicator" title="Published, awaiting confirmation"></span>` 
+					: '';
 				
 				// Only show time for non-allDay shifts
 				if (!isAllDay) {
 					const notesIndicator = notesText ? ' ⓘ' : '';
-					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${notesIndicator}</span>${overlapIndicatorHtml}</div>`);
+					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${notesIndicator}</span>${overlapIndicatorHtml}${pendingConfirmationIndicatorHtml}</div>`);
 				} else {
 					// For allDay shifts, just show "ALL DAY"
 					const notesIndicator = notesText ? ' ⓘ' : '';
-					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">ALL DAY${notesIndicator}</span>${overlapIndicatorHtml}</div>`);
+					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">ALL DAY${notesIndicator}</span>${overlapIndicatorHtml}${pendingConfirmationIndicatorHtml}</div>`);
 				}
 				
 				// Show content based on shift type
