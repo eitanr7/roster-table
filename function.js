@@ -55,10 +55,28 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		return `${hour12}:${minutes} ${ampm}`;
 	}
 
+	// Helper function to sanitize JSON strings by escaping control characters
+	function sanitizeJsonString(str) {
+		if (!str) return str;
+		// Replace unescaped control characters (except already escaped ones)
+		// This handles tabs, newlines, carriage returns, and other control chars
+		return str.replace(/[\x00-\x1F\x7F]/g, (char) => {
+			switch (char) {
+				case '\t': return '\\t';
+				case '\n': return '\\n';
+				case '\r': return '\\r';
+				case '\b': return '\\b';
+				case '\f': return '\\f';
+				default: return '\\u' + ('0000' + char.charCodeAt(0).toString(16)).slice(-4);
+			}
+		});
+	}
+
 	// Handle JSON strings from Glide
 	// Glide sends comma-separated objects without array brackets, so we wrap them
-	const facilitatorsArray = JSON.parse(`[${facilitators}]`);
-	const shiftsArray = JSON.parse(`[${shifts}]`);
+	// Sanitize first to handle any unescaped control characters in the data
+	const facilitatorsArray = JSON.parse(`[${sanitizeJsonString(facilitators)}]`);
+	const shiftsArray = JSON.parse(`[${sanitizeJsonString(shifts)}]`);
 	
 	// Check if there are no facilitators (handle empty array, array with empty objects, or array with empty array)
 	const validFacilitators = facilitatorsArray.filter(fac => fac && typeof fac === 'object' && Object.keys(fac).length > 0);
@@ -72,7 +90,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	if (locationsValue) {
 		try {
 			// Glide sends comma-separated objects without array brackets, so we wrap them
-			locationsArray = JSON.parse(`[${locationsValue}]`);
+			// Sanitize first to handle any unescaped control characters
+			locationsArray = JSON.parse(`[${sanitizeJsonString(locationsValue)}]`);
 		} catch (e) {
 			console.error('Failed to parse locations:', e);
 		}
@@ -166,9 +185,10 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	// Add preview shifts for each faculty member in previewFacs
 	if (preview && preview !== "{}" && previewFacilitators) {
 		// Parse preview shift data (Glide sends as JSON string)
+		// Sanitize first to handle any unescaped control characters
 		let previewShiftObj = null;
 		try {
-			previewShiftObj = JSON.parse(preview);
+			previewShiftObj = JSON.parse(sanitizeJsonString(preview));
 		} catch (e) {
 			previewShiftObj = null;
 		}
