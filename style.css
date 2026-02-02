@@ -89,6 +89,12 @@
 	box-sizing: border-box;
 }
 
+.shift-time-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
 .shift-time {
 	font-weight: 500;
 	font-size: 11px;
@@ -239,22 +245,21 @@
 .location-published.status-sreg { background: color-mix(in srgb, rgb(var(--ee-pink-rgb)) 30%, white); border-color: color-mix(in srgb, rgb(var(--ee-pink-rgb)) 50%, white); }
 .location-published.status-maybe { background: var(--gv-border-dark); border-color: var(--gv-border-dark); }
 
-/* Location - Unconfirmed/Preview (Transparent with dashed border) */
+/* Location - Unconfirmed/Preview (Tinted background, dashed border) */
 .location-unconfirmed {
-	background: transparent;
 	border: 1px dashed;
 	color: var(--gv-text-base);
 }
 
-.location-unconfirmed.status-vic { border-color: var(--ee-green); }
-.location-unconfirmed.status-nsw { border-color: var(--ee-lightBlue); }
-.location-unconfirmed.status-vreg { border-color: color-mix(in srgb, rgb(var(--ee-green-rgb)) 50%, white); }
-.location-unconfirmed.status-nreg { border-color: color-mix(in srgb, rgb(var(--ee-lightBlue-rgb)) 50%, white); }
-.location-unconfirmed.status-qld { border-color: var(--ee-orange); }
-.location-unconfirmed.status-qreg { border-color: color-mix(in srgb, rgb(var(--ee-orange-rgb)) 50%, white); }
-.location-unconfirmed.status-sa { border-color: var(--ee-pink); }
-.location-unconfirmed.status-sreg { border-color: color-mix(in srgb, rgb(var(--ee-pink-rgb)) 50%, white); }
-.location-unconfirmed.status-maybe { border-color: var(--gv-border-dark); }
+.location-unconfirmed.status-vic { background: color-mix(in srgb, rgb(var(--ee-green-rgb)) 20%, white); border-color: var(--ee-green); }
+.location-unconfirmed.status-nsw { background: color-mix(in srgb, rgb(var(--ee-lightBlue-rgb)) 20%, white); border-color: var(--ee-lightBlue); }
+.location-unconfirmed.status-vreg { background: color-mix(in srgb, rgb(var(--ee-green-rgb)) 10%, white); border-color: color-mix(in srgb, rgb(var(--ee-green-rgb)) 50%, white); }
+.location-unconfirmed.status-nreg { background: color-mix(in srgb, rgb(var(--ee-lightBlue-rgb)) 10%, white); border-color: color-mix(in srgb, rgb(var(--ee-lightBlue-rgb)) 50%, white); }
+.location-unconfirmed.status-qld { background: color-mix(in srgb, rgb(var(--ee-orange-rgb)) 20%, white); border-color: var(--ee-orange); }
+.location-unconfirmed.status-qreg { background: color-mix(in srgb, rgb(var(--ee-orange-rgb)) 10%, white); border-color: color-mix(in srgb, rgb(var(--ee-orange-rgb)) 50%, white); }
+.location-unconfirmed.status-sa { background: color-mix(in srgb, rgb(var(--ee-pink-rgb)) 20%, white); border-color: var(--ee-pink); }
+.location-unconfirmed.status-sreg { background: color-mix(in srgb, rgb(var(--ee-pink-rgb)) 10%, white); border-color: color-mix(in srgb, rgb(var(--ee-pink-rgb)) 50%, white); }
+.location-unconfirmed.status-maybe { background: color-mix(in srgb, var(--gv-border-dark) 20%, white); border-color: var(--gv-border-dark); }
 
 /* Notes */
 .shift-notes {
@@ -318,16 +323,10 @@
 }
 
 /* Overlap Indicator */
-.shift-overlapping {
-	position: relative;
-}
-
 .overlap-indicator {
-	position: absolute;
-	top: 2px;
-	right: 4px;
 	color: var(--ee-red, #dc3545);
 	font-size: 12px;
+	font-weight: 600;
 	line-height: 1;
 	cursor: help;
 }

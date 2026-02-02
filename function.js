@@ -439,24 +439,24 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				
 				htmlParts.push(`<div class="${shiftClass}${hoverClass}${overlapClass}">`);
 				
-				// Add overlap indicator arrow if overlapping
-				if (isOverlapping) {
-					htmlParts.push(`<div class="overlap-indicator" title="This shift overlaps with another shift">↗</div>`);
-				}
-				
 				// Show "DROP REQUESTED" for dropped shifts
 				if (isDropped) {
 					htmlParts.push(`<div class="drop-requested-title">DROP REQUESTED</div>`);
 				}
 				
+				// Build the overlap indicator HTML if needed
+				const overlapIndicatorHtml = isOverlapping 
+					? `<span class="overlap-indicator" title="This shift overlaps with another shift">↗</span>` 
+					: '';
+				
 				// Only show time for non-allDay shifts
 				if (!isAllDay) {
 					const notesIndicator = notesText ? ' ⓘ' : '';
-					htmlParts.push(`<div class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${notesIndicator}</div>`);
+					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${notesIndicator}</span>${overlapIndicatorHtml}</div>`);
 				} else {
 					// For allDay shifts, just show "ALL DAY"
 					const notesIndicator = notesText ? ' ⓘ' : '';
-					htmlParts.push(`<div class="shift-time">ALL DAY${notesIndicator}</div>`);
+					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">ALL DAY${notesIndicator}</span>${overlapIndicatorHtml}</div>`);
 				}
 				
 				// Show content based on shift type
