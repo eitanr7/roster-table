@@ -344,8 +344,38 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			
 			// Shifts are already pre-sorted, no need to sort again
 			
+			// Detect overlapping shifts
+			const overlappingShiftIndices = new Set();
+			if (facilitatorShifts.length > 1) {
+				for (let i = 0; i < facilitatorShifts.length; i++) {
+					const shiftA = facilitatorShifts[i];
+					// Skip unavailable or all-day shifts for overlap detection
+					if (shiftA.unavailable === true || shiftA.unavailable === 'true' || 
+						shiftA.allDay === true || shiftA.allDay === 'true') continue;
+					
+					const startA = new Date(shiftA.startDateTime).getTime();
+					const endA = new Date(shiftA.endDateTime).getTime();
+					
+					for (let j = i + 1; j < facilitatorShifts.length; j++) {
+						const shiftB = facilitatorShifts[j];
+						// Skip unavailable or all-day shifts for overlap detection
+						if (shiftB.unavailable === true || shiftB.unavailable === 'true' || 
+							shiftB.allDay === true || shiftB.allDay === 'true') continue;
+						
+						const startB = new Date(shiftB.startDateTime).getTime();
+						const endB = new Date(shiftB.endDateTime).getTime();
+						
+						// Check if shifts overlap (startA < endB AND startB < endA)
+						if (startA < endB && startB < endA) {
+							overlappingShiftIndices.add(i);
+							overlappingShiftIndices.add(j);
+						}
+					}
+				}
+			}
+			
 			if (facilitatorShifts.length > 0) {
-				facilitatorShifts.forEach(shift => {
+				facilitatorShifts.forEach((shift, shiftIndex) => {
 					// Extract time from UTC string without timezone conversion (cached)
 					const startDateTime = shift.startDateTime;
 					const endDateTime = shift.endDateTime;
@@ -403,7 +433,16 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				// Add hover class for all shifts with notes
 				const hoverClass = notesText ? ' shift-with-notes' : '';
 				
-				htmlParts.push(`<div class="${shiftClass}${hoverClass}">`);
+				// Check if this shift overlaps with another
+				const isOverlapping = overlappingShiftIndices.has(shiftIndex);
+				const overlapClass = isOverlapping ? ' shift-overlapping' : '';
+				
+				htmlParts.push(`<div class="${shiftClass}${hoverClass}${overlapClass}">`);
+				
+				// Add overlap indicator arrow if overlapping
+				if (isOverlapping) {
+					htmlParts.push(`<div class="overlap-indicator" title="This shift overlaps with another shift">↗</div>`);
+				}
 				
 				// Show "DROP REQUESTED" for dropped shifts
 				if (isDropped) {
