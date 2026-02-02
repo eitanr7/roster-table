@@ -446,7 +446,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				
 				// Build the overlap indicator HTML if needed
 				const overlapIndicatorHtml = isOverlapping 
-					? `<span class="overlap-indicator" title="This shift overlaps with another shift">↗</span>` 
+					? `<span class="overlap-indicator" title="This shift overlaps with another shift"></span>` 
 					: '';
 				
 				// Only show time for non-allDay shifts
