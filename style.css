@@ -1,15 +1,1 @@
 /* look at HQ.CSS FOR THE STYLING */
-
-/* Time mismatch: facilitator shift date/time differs from main shift (like overlap indicator) */
-.time-mismatch-indicator {
-	display: inline-block;
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	background: #e67e22;
-	margin-left: 4px;
-	vertical-align: middle;
-}
-.shift-time-mismatch .shift-time-row {
-	position: relative;
-}

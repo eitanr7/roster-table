@@ -239,49 +239,6 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		}
 	}
 	
-	// Build a map of all shifts by rowID for main-shift lookup (facilitator shift time vs main shift time)
-	const shiftByRowID = {};
-	regularShifts.forEach(s => {
-		const id = s.rowID || s['Row ID']; // Glide may send "Row ID" with space
-		if (id) shiftByRowID[String(id)] = s;
-	});
-	// Group by shiftID so we can compare facilitator shift to another row for the same slot
-	const shiftsByShiftID = {};
-	regularShifts.forEach(s => {
-		const sid = s.shiftID || s.shiftId || s['Shift ID'];
-		if (sid) {
-			if (!shiftsByShiftID[sid]) shiftsByShiftID[sid] = [];
-			shiftsByShiftID[sid].push(s);
-		}
-	});
-
-	// Helper: get main shift date/time for comparison (from lookup object, by row ID, or same shiftID)
-	function getMainShiftTimes(shift) {
-		// Expanded lookup object (e.g. shift.shift = { startDateTime, endDateTime })
-		const ref = shift.shift || shift.mainShift || shift.parentShift;
-		if (ref && typeof ref === 'object' && (ref.startDateTime || ref.endDateTime)) {
-			return { start: ref.startDateTime, end: ref.endDateTime };
-		}
-		// Row ID reference
-		const refId = shift.mainShiftID || shift.parentShiftID || (typeof ref === 'string' ? ref : (ref && ref.rowID));
-		if (refId) {
-			const main = shiftByRowID[String(refId)];
-			if (main && (main.startDateTime || main.endDateTime)) {
-				return { start: main.startDateTime, end: main.endDateTime };
-			}
-		}
-		// Same shiftID: use first other row with same shiftID as "main" for comparison
-		const sid = shift.shiftID || shift.shiftId || shift['Shift ID'];
-		if (sid && shiftsByShiftID[sid]) {
-			const sameSlot = shiftsByShiftID[sid];
-			const main = sameSlot.find(s => (s.rowID || s['Row ID']) !== (shift.rowID || shift['Row ID']));
-			if (main && (main.startDateTime || main.endDateTime)) {
-				return { start: main.startDateTime, end: main.endDateTime };
-			}
-		}
-		return null;
-	}
-
 	// Pre-sort all shifts by start time AFTER adding preview shifts
 	Object.keys(shiftsByDate).forEach(date => {
 		Object.keys(shiftsByDate[date]).forEach(facEmail => {
@@ -502,22 +459,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				// Published but not yet confirmed
 				const isPublishedNotConfirmed = isPublished && !isConfirmed;
 				const publishedUnconfirmedClass = isPublishedNotConfirmed ? ' shift-published-unconfirmed' : '';
-				// Check if this facilitator shift's date/time differs from its main shift
-				let isTimeMismatch = false;
-				if (!isPreview && !isUnavailable && !isAllDay) {
-					const mainTimes = getMainShiftTimes(shift);
-					if (mainTimes) {
-						const aStart = shift.startDateTime ? new Date(shift.startDateTime).getTime() : NaN;
-						const aEnd = shift.endDateTime ? new Date(shift.endDateTime).getTime() : NaN;
-						const bStart = mainTimes.start ? new Date(mainTimes.start).getTime() : NaN;
-						const bEnd = mainTimes.end ? new Date(mainTimes.end).getTime() : NaN;
-						if (!isNaN(aStart) && !isNaN(bStart) && aStart !== bStart) isTimeMismatch = true;
-						if (!isNaN(aEnd) && !isNaN(bEnd) && aEnd !== bEnd) isTimeMismatch = true;
-					}
-				}
-				const timeMismatchClass = isTimeMismatch ? ' shift-time-mismatch' : '';
 				
-				htmlParts.push(`<div class="${shiftClass}${hoverClass}${overlapClass}${publishedUnconfirmedClass}${timeMismatchClass}">`);
+				htmlParts.push(`<div class="${shiftClass}${hoverClass}${overlapClass}${publishedUnconfirmedClass}">`);
 				
 				// Show "DROP REQUESTED" for dropped shifts
 				if (isDropped) {
@@ -528,10 +471,6 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				const overlapIndicatorHtml = isOverlapping 
 					? `<span class="overlap-indicator" title="This shift overlaps with another shift"></span>` 
 					: '';
-				// Indicator when facilitator shift time differs from main shift
-				const timeMismatchIndicatorHtml = isTimeMismatch 
-					? `<span class="time-mismatch-indicator" title="This shift's time differs from the main shift"></span>` 
-					: '';
 				// Orange arrow for published but not confirmed
 				const pendingConfirmationIndicatorHtml = isPublishedNotConfirmed 
 					? `<span class="pending-confirmation-indicator" title="Published, awaiting confirmation"></span>` 
@@ -540,11 +479,11 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				// Only show time for non-allDay shifts
 				if (!isAllDay) {
 					const notesIndicator = notesText ? ' ⓘ' : '';
-					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${notesIndicator}</span>${overlapIndicatorHtml}${timeMismatchIndicatorHtml}${pendingConfirmationIndicatorHtml}</div>`);
+					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${notesIndicator}</span>${overlapIndicatorHtml}${pendingConfirmationIndicatorHtml}</div>`);
 				} else {
 					// For allDay shifts, just show "ALL DAY"
 					const notesIndicator = notesText ? ' ⓘ' : '';
-					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">ALL DAY${notesIndicator}</span>${overlapIndicatorHtml}${timeMismatchIndicatorHtml}${pendingConfirmationIndicatorHtml}</div>`);
+					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">ALL DAY${notesIndicator}</span>${overlapIndicatorHtml}${pendingConfirmationIndicatorHtml}</div>`);
 				}
 				
 				// Show content based on shift type
