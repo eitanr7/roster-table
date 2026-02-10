@@ -275,8 +275,14 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 	
 	// Generate HTML using array for better performance
+	const numDateColumns = sortedDates.length;
+	const tableWidth = 200 + (numDateColumns * 200);
 	const htmlParts = [`<div>
-		<table class="roster-table">
+		<table class="roster-table" style="width: ${tableWidth}px;">
+			<colgroup>
+				<col style="width: 200px;">
+				${'<col style="width: 200px;">'.repeat(numDateColumns)}
+			</colgroup>
 			<tbody>`];
 	
 	// Add rows for each facilitator
