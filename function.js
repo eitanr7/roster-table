@@ -1,16 +1,10 @@
-window.function = function (facilitatorsData, shiftsData, startDate, endDate, locations, previewShift, previewFacs, state) {
+window.function = function (facilitatorsData, shiftsData, startDate, endDate, locations, state) {
 	// Extract the .value from each parameter and assign default values for undefined inputs
 	const facilitators = facilitatorsData.value ?? "[]";
 	const shifts = shiftsData.value ?? "[]";
 	const start = startDate.value ?? "2027-05-03T00:00:00.000Z";
 	const end = endDate.value ?? "2027-05-09T23:59:00.000Z";
 	const locationsValue = locations.value ?? "";
-	let preview = previewShift.value ?? "{}";
-	// Handle edge cases where preview might be null, undefined, or empty string
-	if (!preview || preview === "" || preview === "null" || preview === "undefined") {
-		preview = "{}";
-	}
-	const previewFacilitators = previewFacs.value ?? "";
 	const stateValue = state.value ?? "VIC";
 	
 	// Return undefined if required inputs are missing //
@@ -182,64 +176,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		shiftsByDate[date][facilitatorEmail].push(shift);
 	});
 	
-	// Add preview shifts for each faculty member in previewFacs
-	if (preview && preview !== "{}" && previewFacilitators) {
-		// Parse preview shift data (Glide sends as JSON string)
-		// Sanitize first to handle any unescaped control characters
-		let previewShiftObj = null;
-		try {
-			previewShiftObj = JSON.parse(sanitizeJsonString(preview));
-		} catch (e) {
-			previewShiftObj = null;
-		}
-		
-		// Validate that preview shift has required fields and they're not empty
-		if (previewShiftObj && 
-			Object.keys(previewShiftObj).length > 0 &&
-			previewShiftObj.startDate && 
-			previewShiftObj.endDate && 
-			typeof previewShiftObj.startDate === 'string' &&
-			typeof previewShiftObj.endDate === 'string' &&
-			previewShiftObj.startDate.length > 0 &&
-			previewShiftObj.endDate.length > 0) {
-			
-			const previewFacsArray = [...new Set(previewFacilitators.split(',').map(email => email.trim()).filter(email => email))];
-			
-			// Parse preview shift date
-			const previewDate = parseDateString(previewShiftObj.startDate);
-			
-			// Validate that the date was parsed successfully and we have facilitators
-			if (previewDate && previewFacsArray.length > 0) {
-				allDates.add(previewDate);
-				
-				if (!shiftsByDate[previewDate]) {
-					shiftsByDate[previewDate] = {};
-				}
-				
-				// Create preview shift object for each faculty member
-				previewFacsArray.forEach(facEmail => {
-					if (!shiftsByDate[previewDate][facEmail]) {
-						shiftsByDate[previewDate][facEmail] = [];
-					}
-				
-					const previewShiftData = {
-						startDateTime: previewShiftObj.startDate,
-						endDateTime: previewShiftObj.endDate,
-						locationID: null, // We'll use locationName directly
-						locationName: previewShiftObj.locationName || '',
-						shiftStatus: previewShiftObj.status || 'MAYBE', // Use the status from previewShift, default to MAYBE
-						isPreview: true,
-						unavailable: false,
-						allDay: false
-					};
-				
-					shiftsByDate[previewDate][facEmail].push(previewShiftData);
-				});
-			}
-		}
-	}
-	
-	// Pre-sort all shifts by start time AFTER adding preview shifts
+	// Pre-sort all shifts by start time
 	Object.keys(shiftsByDate).forEach(date => {
 		Object.keys(shiftsByDate[date]).forEach(facEmail => {
 			shiftsByDate[date][facEmail].sort((a, b) => {
@@ -301,8 +238,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				: [];
 			
 			facilitatorShifts.forEach(shift => {
-				// Only count actual shifts (not preview, not unavailable, not all day)
-				if (!shift.isPreview && !shift.unavailable && !shift.allDay) {
+				// Only count actual shifts (not unavailable, not all day)
+				if (!shift.unavailable && !shift.allDay) {
 					hasShifts = true;
 					// Only confirmed shifts count for the green tick
 					if (!shift.confirmed) {
@@ -414,11 +351,10 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				// Pre-compute shift properties once
 				const isUnavailable = shift.unavailable === true || shift.unavailable === 'true';
 				const isAllDay = shift.allDay === true || shift.allDay === 'true';
-				const isPreview = shift.isPreview === true;
 				const isConfirmed = !!shift.confirmed;
 				const isPublished = !!shift.published;
 				const isDropped = shift.dropped === true || shift.dropped === 'true' || (shift.dropped && typeof shift.dropped === 'string' && shift.dropped.trim() !== '' && shift.dropped.trim().toLowerCase() !== 'false'); // Check if shift has a dropped date (handles boolean true, string "true", or any non-empty text that isn't "false")
-				const isUnconfirmed = !isConfirmed && !isPreview && !isUnavailable && !isAllDay && !isPublished && !isDropped;
+				const isUnconfirmed = !isConfirmed && !isUnavailable && !isAllDay && !isPublished && !isDropped;
 				
 				// Get location text for all shifts
 				const locationText = shift.locationName || (shift.locationID && locationMap[shift.locationID] ? locationMap[shift.locationID] : '');
@@ -451,7 +387,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					shiftClass += ' shift-published ' + statusClass;
 					locationClass += ' location-published ' + statusClass;
 				} else {
-					// Unconfirmed or preview
+					// Unconfirmed
 					shiftClass += ' shift-unconfirmed ' + statusClass;
 					locationClass += ' location-unconfirmed ' + statusClass;
 				}
