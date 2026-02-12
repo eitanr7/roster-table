@@ -7,12 +7,12 @@
 		"params": [
 			{
 				"name": "facilitatorsData",
-				"displayName": "Facilitators Data (JSON) · Joined List without closing brackets []",
+				"displayName": "Facilitators Data (JSON) · Joined List without outer []",
 				"type": "string"
 			},
 			{
 				"name": "shiftsData",
-				"displayName": "Shifts Data (JSON) · Joined List without closing brackets []",
+				"displayName": "Shifts Data (JSON) · Joined List without outer []",
 				"type": "string"
 			},
 			{
@@ -27,17 +27,7 @@
 			},
 			{
 				"name": "locations",
-				"displayName": "Locations (JSON) · Joined List without closing brackets []",
-				"type": "string"
-			},
-			{
-				"name": "previewShift",
-				"displayName": "Preview Shift (JSON)",
-				"type": "string"
-			},
-			{
-				"name": "previewFacs",
-				"displayName": "Preview Facilitators",
+				"displayName": "Locations (JSON) · Joined List without outer []",
 				"type": "string"
 			},
 			{
