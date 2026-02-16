@@ -420,7 +420,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				
 				// Check if this facilitator is the lead facilitator for this shift
 				const isLeadFac = shift.leadFac && shift.facilitator && shift.leadFac.trim().toLowerCase() === shift.facilitator.trim().toLowerCase();
-				const leadFacIndicator = isLeadFac ? '✪' : '';
+				const leadFacIndicator = isLeadFac ? ' ✪' : '';
 				
 				// Only show time for non-allDay shifts
 				if (!isAllDay) {
