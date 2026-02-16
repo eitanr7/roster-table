@@ -418,14 +418,18 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					? `<span class="pending-confirmation-indicator" title="Published, awaiting confirmation"></span>` 
 					: '';
 				
+				// Check if this facilitator is the lead facilitator for this shift
+				const isLeadFac = shift.leadFac && shift.facilitator && shift.leadFac.trim().toLowerCase() === shift.facilitator.trim().toLowerCase();
+				const leadFacIndicator = isLeadFac ? '✪' : '';
+				
 				// Only show time for non-allDay shifts
 				if (!isAllDay) {
 					const notesIndicator = notesText ? ' ⓘ' : '';
-					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${notesIndicator}</span>${overlapIndicatorHtml}${pendingConfirmationIndicatorHtml}</div>`);
+					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${leadFacIndicator}${notesIndicator}</span>${overlapIndicatorHtml}${pendingConfirmationIndicatorHtml}</div>`);
 				} else {
 					// For allDay shifts, just show "ALL DAY"
 					const notesIndicator = notesText ? ' ⓘ' : '';
-					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">ALL DAY${notesIndicator}</span>${overlapIndicatorHtml}${pendingConfirmationIndicatorHtml}</div>`);
+					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">ALL DAY${leadFacIndicator}${notesIndicator}</span>${overlapIndicatorHtml}${pendingConfirmationIndicatorHtml}</div>`);
 				}
 				
 				// Show content based on shift type
