@@ -242,7 +242,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				if (!shift.unavailable && !shift.allDay) {
 					hasShifts = true;
 					// Only confirmed shifts count for the green tick
-					if (!shift.confirmed) {
+					const isConfirmedForFac = shift.confirmed === true || shift.confirmed === 'true';
+					if (!isConfirmedForFac) {
 						allShiftsConfirmed = false;
 					}
 					
@@ -351,7 +352,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				// Pre-compute shift properties once
 				const isUnavailable = shift.unavailable === true || shift.unavailable === 'true';
 				const isAllDay = shift.allDay === true || shift.allDay === 'true';
-				const isConfirmed = !!shift.confirmed;
+				const isConfirmed = shift.confirmed === true || shift.confirmed === 'true';
 				const isPublished = !!shift.published;
 				const isDropped = shift.dropped === true || shift.dropped === 'true' || (shift.dropped && typeof shift.dropped === 'string' && shift.dropped.trim() !== '' && shift.dropped.trim().toLowerCase() !== 'false'); // Check if shift has a dropped date (handles boolean true, string "true", or any non-empty text that isn't "false")
 				const isUnconfirmed = !isConfirmed && !isUnavailable && !isAllDay && !isPublished && !isDropped;
