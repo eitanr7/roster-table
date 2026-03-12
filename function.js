@@ -193,18 +193,17 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	// Sort dates
 	const sortedDates = Array.from(allDates).sort();
 	
-	// Sort facilitators by rosterOrder
+	// Sort facilitators by rosterOrder (numeric, smallest first, empty/missing at bottom)
 	const sortedFacilitators = [...facilitatorsArray].sort((a, b) => {
-		// Handle missing rosterOrder - put them at the end, sorted by name
-		if (!a.rosterOrder && !b.rosterOrder) return a.fullName.localeCompare(b.fullName);
-		if (!a.rosterOrder) return 1;
-		if (!b.rosterOrder) return -1;
+		const aNum = a.rosterOrder != null && a.rosterOrder !== '' ? Number(a.rosterOrder) : null;
+		const bNum = b.rosterOrder != null && b.rosterOrder !== '' ? Number(b.rosterOrder) : null;
+		const aValid = aNum !== null && !isNaN(aNum);
+		const bValid = bNum !== null && !isNaN(bNum);
 
-		// Compare rosterOrder strings using simple comparison (< and >)
-		// This ensures consistent character-by-character ordering for special chars like tabs
-		if (a.rosterOrder < b.rosterOrder) return -1;
-		if (a.rosterOrder > b.rosterOrder) return 1;
-		return 0;
+		if (!aValid && !bValid) return (a.fullName || '').localeCompare(b.fullName || '');
+		if (!aValid) return 1;
+		if (!bValid) return -1;
+		return aNum - bNum;
 	});
 	
 	// Pre-compute today's date string in local timezone (do this before HTML generation)
