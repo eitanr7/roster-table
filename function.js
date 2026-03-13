@@ -465,16 +465,13 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					if (displayText) {
 						htmlParts.push(`<div class="shift-notes">${escapeHtml(displayText)}</div>`);
 					}
-				} else if (isDropAccepted) {
-					// For accepted drops, show drop reason instead of location
-					const dropReason = shift.dropReason || '';
-					if (dropReason) {
-						htmlParts.push(`<div class="drop-reason">${parseMarkdown(dropReason)}</div>`);
-					}
 				} else {
-					// For regular shifts, show location and notes
-					if (locationText) {
-						htmlParts.push(`<div class="${locationClass}" title="${escapeHtml(locationText)}">${escapeHtml(locationText)}</div>`);
+					// For accepted drops, show drop reason instead of location
+					const shiftLocationText = isDropAccepted && shift.dropReason ? shift.dropReason : locationText;
+					if (shiftLocationText) {
+						// Use parseMarkdown for drop reason (may contain markdown), escapeHtml for regular location
+						const locationContent = isDropAccepted && shift.dropReason ? parseMarkdown(shiftLocationText) : escapeHtml(shiftLocationText);
+						htmlParts.push(`<div class="${locationClass}" title="${escapeHtml(shiftLocationText)}">${locationContent}</div>`);
 					}
 					if (notesText) {
 						htmlParts.push(`<div class="shift-notes">${escapeHtml(notesText)}</div>`);
