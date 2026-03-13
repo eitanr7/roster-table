@@ -354,6 +354,9 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				const isConfirmed = shift.confirmed === true || shift.confirmed === 'true';
 				const isPublished = !!shift.published;
 				const isDropped = shift.dropped === true || shift.dropped === 'true' || (shift.dropped && typeof shift.dropped === 'string' && shift.dropped.trim() !== '' && shift.dropped.trim().toLowerCase() !== 'false'); // Check if shift has a dropped date (handles boolean true, string "true", or any non-empty text that isn't "false")
+				// Support both legacy "drop accepted" and new "dropAccepted" keys
+				const isDropAcceptedRaw = shift.dropAccepted !== undefined ? shift.dropAccepted : shift['drop accepted'];
+				const isDropAccepted = isDropped && (isDropAcceptedRaw === true || isDropAcceptedRaw === 'true');
 				const isUnconfirmed = !isConfirmed && !isUnavailable && !isAllDay && !isPublished && !isDropped;
 				
 				// Get location text for all shifts
@@ -370,7 +373,11 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				let locationClass = 'shift-location';
 				const statusClass = getStatusClass(shift.shiftStatus);
 				
-				if (isDropped) {
+				if (isDropAccepted) {
+					// Dropped and accepted styling
+					shiftClass += ' shift-dropped-accepted';
+					locationClass += ' location-dropped';
+				} else if (isDropped) {
 					// Dropped shift styling - purple
 					shiftClass += ' shift-dropped';
 					locationClass += ' location-dropped';
@@ -404,8 +411,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				
 				htmlParts.push(`<div class="${shiftClass}${hoverClass}${overlapClass}${publishedUnconfirmedClass}">`);
 				
-				// Show "DROP REQUESTED" for dropped shifts
-				if (isDropped) {
+				// Show "DROP REQUESTED" for dropped shifts that haven't been accepted yet
+				if (isDropped && !isDropAccepted) {
 					htmlParts.push(`<div class="drop-requested-title">DROP REQUESTED</div>`);
 				}
 				
