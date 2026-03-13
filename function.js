@@ -30,6 +30,21 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		return String(text).replace(/[&<>"']/g, m => map[m]);
 	}
 
+	// Helper function to parse basic markdown to HTML
+	function parseMarkdown(text) {
+		if (!text) return '';
+		let html = escapeHtml(text);
+		// Bold: **text** or __text__
+		html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+		html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+		// Italic: *text* or _text_
+		html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+		html = html.replace(/_(.+?)_/g, '<em>$1</em>');
+		// Line breaks
+		html = html.replace(/\n/g, '<br>');
+		return html;
+	}
+
 	// Helper function to parse date string to YYYY-MM-DD format
 	function parseDateString(dateValue) {
 		if (!dateValue) return null;
@@ -416,6 +431,11 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					htmlParts.push(`<div class="drop-requested-title">DROP REQUESTED</div>`);
 				}
 				
+				// Show "DROP ACCEPTED" for accepted drops
+				if (isDropAccepted) {
+					htmlParts.push(`<div class="drop-accepted-title">DROP ACCEPTED</div>`);
+				}
+				
 				// Build the overlap indicator HTML if needed
 				const overlapIndicatorHtml = isOverlapping 
 					? `<span class="overlap-indicator" title="This shift overlaps with another shift"></span>` 
@@ -444,6 +464,12 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					// For unavailable/allDay shifts, show notes as primary content
 					if (displayText) {
 						htmlParts.push(`<div class="shift-notes">${escapeHtml(displayText)}</div>`);
+					}
+				} else if (isDropAccepted) {
+					// For accepted drops, show drop reason instead of location
+					const dropReason = shift.dropReason || '';
+					if (dropReason) {
+						htmlParts.push(`<div class="drop-reason">${parseMarkdown(dropReason)}</div>`);
 					}
 				} else {
 					// For regular shifts, show location and notes
