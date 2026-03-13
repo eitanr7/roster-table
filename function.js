@@ -433,7 +433,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				
 				// Show "DROP ACCEPTED" for accepted drops
 				if (isDropAccepted) {
-					htmlParts.push(`<div class="drop-accepted-title">DROP ACCEPTED</div>`);
+					htmlParts.push(`<div class="drop-accepted-title">DROPPED</div>`);
 				}
 				
 				// Build the overlap indicator HTML if needed
