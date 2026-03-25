@@ -449,10 +449,22 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				const isLeadFac = shift.leadFac && shift.facilitator && shift.leadFac.trim().toLowerCase() === shift.facilitator.trim().toLowerCase();
 				const leadFacIndicator = isLeadFac ? ' ✪' : '';
 				
+				// Check if shift times differ from master shift times
+				let differentTimeIndicator = '';
+				if (shift.mastershiftStart && shift.mastershiftEnd && startDateTime && endDateTime) {
+					const masterStartMs = new Date(shift.mastershiftStart).getTime();
+					const masterEndMs = new Date(shift.mastershiftEnd).getTime();
+					const shiftStartMs = new Date(startDateTime).getTime();
+					const shiftEndMs = new Date(endDateTime).getTime();
+					if (shiftStartMs !== masterStartMs || shiftEndMs !== masterEndMs) {
+						differentTimeIndicator = ' ◑';
+					}
+				}
+
 				// Only show time for non-allDay shifts
 				if (!isAllDay) {
 					const notesIndicator = notesText ? ' ⓘ' : '';
-					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${leadFacIndicator}${notesIndicator}</span>${overlapIndicatorHtml}${pendingConfirmationIndicatorHtml}</div>`);
+					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${differentTimeIndicator}${leadFacIndicator}${notesIndicator}</span>${overlapIndicatorHtml}${pendingConfirmationIndicatorHtml}</div>`);
 				} else {
 					// For allDay shifts, just show "ALL DAY"
 					const notesIndicator = notesText ? ' ⓘ' : '';
