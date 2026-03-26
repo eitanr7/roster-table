@@ -539,7 +539,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	});
 
 	htmlParts.push(`</tbody>
-			<tfoot><tr><th class="roster-footer-cell" style="position: sticky; bottom: 0; left: 0; z-index: 3;"></th>`);
+			<tfoot><tr><td></td>`);
 
 	sortedDates.forEach(dateStr => {
 		const isToday = dateStr === todayString;
