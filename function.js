@@ -236,26 +236,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				<col style="width: 200px;">
 				${'<col style="width: 200px;">'.repeat(numDateColumns)}
 			</colgroup>
-			<thead><tr><th class="roster-header-cell" style="position: sticky; top: 0; left: 0; z-index: 3;"></th>`];
-
-	sortedDates.forEach(dateStr => {
-		const dateObj = new Date(dateStr + 'T00:00:00Z');
-		const dayName = dayNames[dateObj.getUTCDay()];
-		const dayNum = dateObj.getUTCDate();
-		const monthNum = dateObj.getUTCMonth() + 1;
-		const label = `${dayName} ${dayNum}/${monthNum}`;
-
-		const isToday = dateStr === todayString;
-		const isClosed = closedDates.has(dateStr);
-		let extraClass = '';
-		if (isClosed) extraClass = ' roster-header-cell-closed';
-		else if (isToday) extraClass = ' roster-header-cell-today';
-
-		htmlParts.push(`<th class="roster-header-cell${extraClass}"><div class="roster-header-date-wrapper">${escapeHtml(label)}<span class="roster-header-tooltip">placeholder</span></div></th>`);
-	});
-
-	htmlParts.push(`</tr></thead>
-			<tbody>`);
+			<tbody>`];
 	
 	// Add rows for each facilitator
 	sortedFacilitators.forEach((facilitator, index) => {
@@ -523,6 +504,25 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	});
 	
 	htmlParts.push(`</tbody>
+			<tfoot><tr><th class="roster-footer-cell" style="position: sticky; bottom: 0; left: 0; z-index: 3;"></th>`);
+
+	sortedDates.forEach(dateStr => {
+		const dateObj = new Date(dateStr + 'T00:00:00Z');
+		const dayName = dayNames[dateObj.getUTCDay()];
+		const dayNum = dateObj.getUTCDate();
+		const monthNum = dateObj.getUTCMonth() + 1;
+		const label = `${dayName} ${dayNum}/${monthNum}`;
+
+		const isToday = dateStr === todayString;
+		const isClosed = closedDates.has(dateStr);
+		let extraClass = '';
+		if (isClosed) extraClass = ' roster-footer-cell-closed';
+		else if (isToday) extraClass = ' roster-footer-cell-today';
+
+		htmlParts.push(`<th class="roster-footer-cell${extraClass}"><div class="roster-footer-date-wrapper">${escapeHtml(label)}<span class="roster-footer-tooltip">placeholder</span></div></th>`);
+	});
+
+	htmlParts.push(`</tr></tfoot>
 		</table>
 	</div>`);
 	
