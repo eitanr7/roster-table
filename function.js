@@ -511,6 +511,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		const unavailable = [];
 
 		sortedFacilitators.forEach(facilitator => {
+			if (facilitator.facRole === 'Training Facilitator') return;
+
 			const shifts = shiftsByDate[dateStr] && shiftsByDate[dateStr][facilitator.email]
 				? shiftsByDate[dateStr][facilitator.email]
 				: [];
