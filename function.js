@@ -298,9 +298,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					<div class="facilitator-info">
 						${avatarHtml}
 						<div class="facilitator-details">
-							<span>${escapeHtml(facilitator.fullName)}</span>
-							${facilitator.facRole ? `<span class="facilitator-role">${escapeHtml(facilitator.facRole)}</span>` : ''}
-							<span class="facilitator-hours">${hoursDisplay}</span>
+							<span>${escapeHtml(facilitator.fullName)}</span>${facilitator.facRole ? `<span class="facilitator-role">${escapeHtml(facilitator.facRole)}</span>` : ''}<span class="facilitator-hours">${hoursDisplay}</span>
 						</div>
 					</div>
 				</td>`);
