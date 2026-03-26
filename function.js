@@ -554,7 +554,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 
 		const availCount = formatCount(sumWeight(available));
 		const partialCount = formatCount(sumWeight(partial));
-		const cellLabel = `${availCount} Available (~${partialCount})`;
+		const cellLabel = `<span class="popover-dot popover-dot-available"></span> ${escapeHtml(availCount)} Free <span class="popover-dot popover-dot-partial"></span> ${escapeHtml(partialCount)} Partial`;
 
 		const tooltipSections = [];
 		if (available.length > 0) {
@@ -571,7 +571,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		}
 		const tooltipContent = `<div class="popover-columns">${tooltipSections.join('')}</div>`;
 
-		htmlParts.push(`<th class="roster-footer-cell${extraClass}"><div class="roster-footer-date-wrapper">${escapeHtml(cellLabel)}<span class="roster-footer-tooltip">${tooltipContent}</span></div></th>`);
+		htmlParts.push(`<th class="roster-footer-cell${extraClass}"><div class="roster-footer-date-wrapper">${cellLabel}<span class="roster-footer-tooltip">${tooltipContent}</span></div></th>`);
 	});
 
 	htmlParts.push(`</tr></tfoot>
