@@ -569,7 +569,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			const names = unavailable.map(f => `<div class="popover-name">${escapeHtml(f.name)}</div>`).join('');
 			tooltipSections.push(`<div class="popover-section"><div class="popover-header"><span class="popover-dot popover-dot-unavailable"></span>${formatCount(sumWeight(unavailable))} Unavailable</div>${names}</div>`);
 		}
-		const tooltipContent = tooltipSections.join('');
+		const tooltipContent = `<div class="popover-columns">${tooltipSections.join('')}</div>`;
 
 		htmlParts.push(`<th class="roster-footer-cell${extraClass}"><div class="roster-footer-date-wrapper">${escapeHtml(cellLabel)}<span class="roster-footer-tooltip">${tooltipContent}</span></div></th>`);
 	});
