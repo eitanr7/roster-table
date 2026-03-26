@@ -554,7 +554,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 
 		const availCount = formatCount(sumWeight(available));
 		const partialCount = formatCount(sumWeight(partial));
-		const cellLabel = `${availCount} Free (${partialCount} Partial)`;
+		const cellLabel = `${availCount} Available (~${partialCount})`;
 
 		const tooltipLines = [];
 		if (available.length > 0) {
