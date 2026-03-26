@@ -556,20 +556,17 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		const partialCount = formatCount(sumWeight(partial));
 		const cellLabel = `${availCount} Available (∼${partialCount})`;
 
-		const tooltipSections = [];
+		const tooltipParts = [];
 		if (available.length > 0) {
-			const names = available.map(f => `<div class="popover-name">${escapeHtml(f.name)}</div>`).join('');
-			tooltipSections.push(`<div class="popover-section"><div class="popover-header"><span class="popover-dot popover-dot-available"></span>${availCount} Available</div>${names}</div>`);
+			tooltipParts.push(`<span class="popover-dot popover-dot-available"></span>${available.map(f => escapeHtml(f.name)).join(', ')}`);
 		}
 		if (partial.length > 0) {
-			const names = partial.map(f => `<div class="popover-name">${escapeHtml(f.name)}</div>`).join('');
-			tooltipSections.push(`<div class="popover-section"><div class="popover-header"><span class="popover-dot popover-dot-partial"></span>${partialCount} Partial</div>${names}</div>`);
+			tooltipParts.push(`<span class="popover-dot popover-dot-partial"></span>${partial.map(f => escapeHtml(f.name)).join(', ')}`);
 		}
 		if (unavailable.length > 0) {
-			const names = unavailable.map(f => `<div class="popover-name">${escapeHtml(f.name)}</div>`).join('');
-			tooltipSections.push(`<div class="popover-section"><div class="popover-header"><span class="popover-dot popover-dot-unavailable"></span>${formatCount(sumWeight(unavailable))} Unavailable</div>${names}</div>`);
+			tooltipParts.push(`<span class="popover-dot popover-dot-unavailable"></span>${unavailable.map(f => escapeHtml(f.name)).join(', ')}`);
 		}
-		const tooltipContent = `<div class="popover-columns">${tooltipSections.join('')}</div>`;
+		const tooltipContent = tooltipParts.join('<span class="popover-sep"></span>');
 
 		htmlParts.push(`<th class="roster-footer-cell${extraClass}"><div class="roster-footer-date-wrapper">${escapeHtml(cellLabel)}<span class="roster-footer-tooltip">${tooltipContent}</span></div></th>`);
 	});
