@@ -556,17 +556,20 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		const partialCount = formatCount(sumWeight(partial));
 		const cellLabel = `${availCount} Available (~${partialCount})`;
 
-		const tooltipLines = [];
+		const tooltipSections = [];
 		if (available.length > 0) {
-			tooltipLines.push(`<strong>${availCount} Available:</strong> ${available.map(f => escapeHtml(f.name)).join(', ')}`);
+			const names = available.map(f => `<div class="popover-name">${escapeHtml(f.name)}</div>`).join('');
+			tooltipSections.push(`<div class="popover-section"><div class="popover-header"><span class="popover-dot popover-dot-available"></span>${availCount} Available</div>${names}</div>`);
 		}
 		if (partial.length > 0) {
-			tooltipLines.push(`<strong>${partialCount} Partially Available:</strong> ${partial.map(f => escapeHtml(f.name)).join(', ')}`);
+			const names = partial.map(f => `<div class="popover-name">${escapeHtml(f.name)}</div>`).join('');
+			tooltipSections.push(`<div class="popover-section"><div class="popover-header"><span class="popover-dot popover-dot-partial"></span>${partialCount} Partial</div>${names}</div>`);
 		}
 		if (unavailable.length > 0) {
-			tooltipLines.push(`<strong>${formatCount(sumWeight(unavailable))} Unavailable:</strong> ${unavailable.map(f => escapeHtml(f.name)).join(', ')}`);
+			const names = unavailable.map(f => `<div class="popover-name">${escapeHtml(f.name)}</div>`).join('');
+			tooltipSections.push(`<div class="popover-section"><div class="popover-header"><span class="popover-dot popover-dot-unavailable"></span>${formatCount(sumWeight(unavailable))} Unavailable</div>${names}</div>`);
 		}
-		const tooltipContent = tooltipLines.join('<br>');
+		const tooltipContent = tooltipSections.join('');
 
 		htmlParts.push(`<th class="roster-footer-cell${extraClass}"><div class="roster-footer-date-wrapper">${escapeHtml(cellLabel)}<span class="roster-footer-tooltip">${tooltipContent}</span></div></th>`);
 	});
