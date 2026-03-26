@@ -284,7 +284,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 			avatarHtml = `<div class="facilitator-badge facilitator-badge-pending">?</div>`;
 		} else if (facilitator.avatar) {
 			// Show regular avatar
-			avatarHtml = `<img src="${facilitator.avatar}" class="facilitator-avatar" />`;
+			avatarHtml = `<img src="${escapeHtml(facilitator.avatar)}" class="facilitator-avatar" />`;
 		} else {
 			avatarHtml = '';
 		}
