@@ -225,6 +225,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	const today = new Date();
 	const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 	
+	const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 	// Generate HTML using array for better performance
 	const numDateColumns = sortedDates.length;
 	const tableWidth = 200 + (numDateColumns * 200);
@@ -234,7 +236,26 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				<col style="width: 200px;">
 				${'<col style="width: 200px;">'.repeat(numDateColumns)}
 			</colgroup>
-			<tbody>`];
+			<thead><tr><th class="roster-header-cell" style="position: sticky; top: 0; left: 0; z-index: 3;"></th>`];
+
+	sortedDates.forEach(dateStr => {
+		const dateObj = new Date(dateStr + 'T00:00:00Z');
+		const dayName = dayNames[dateObj.getUTCDay()];
+		const dayNum = dateObj.getUTCDate();
+		const monthNum = dateObj.getUTCMonth() + 1;
+		const label = `${dayName} ${dayNum}/${monthNum}`;
+
+		const isToday = dateStr === todayString;
+		const isClosed = closedDates.has(dateStr);
+		let extraClass = '';
+		if (isClosed) extraClass = ' roster-header-cell-closed';
+		else if (isToday) extraClass = ' roster-header-cell-today';
+
+		htmlParts.push(`<th class="roster-header-cell${extraClass}"><div class="roster-header-date-wrapper">${escapeHtml(label)}<span class="roster-header-tooltip">placeholder</span></div></th>`);
+	});
+
+	htmlParts.push(`</tr></thead>
+			<tbody>`);
 	
 	// Add rows for each facilitator
 	sortedFacilitators.forEach((facilitator, index) => {
