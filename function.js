@@ -511,22 +511,26 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		const unavailable = [];
 
 		sortedFacilitators.forEach(facilitator => {
-			if (facilitator.facRole === 'Training Facilitator') return;
+			if (facilitator.facRole === 'Admin') return;
+
+			const isTraining = facilitator.facRole === 'Training Facilitator';
+			const weight = isTraining ? 0.5 : 1;
+			const displayName = isTraining ? facilitator.fullName + ' (T)' : facilitator.fullName;
 
 			const shifts = shiftsByDate[dateStr] && shiftsByDate[dateStr][facilitator.email]
 				? shiftsByDate[dateStr][facilitator.email]
 				: [];
 
 			if (shifts.length === 0) {
-				available.push(facilitator.fullName);
+				available.push({ name: displayName, weight });
 			} else {
 				const hasAllDay = shifts.some(s =>
 					s.allDay === true || s.allDay === 'true'
 				);
 				if (hasAllDay) {
-					unavailable.push(facilitator.fullName);
+					unavailable.push({ name: displayName, weight });
 				} else {
-					partial.push(facilitator.fullName);
+					partial.push({ name: displayName, weight });
 				}
 			}
 		});
@@ -545,17 +549,22 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		else if (isToday) extraClass = ' roster-footer-cell-today';
 
 		const { available, partial, unavailable } = availabilityByDate[dateStr];
-		const cellLabel = `${available.length} Available (${partial.length})`;
+		const sumWeight = arr => arr.reduce((sum, f) => sum + f.weight, 0);
+		const formatCount = n => n % 1 === 0 ? n.toFixed(0) : n.toFixed(1);
+
+		const availCount = formatCount(sumWeight(available));
+		const partialCount = formatCount(sumWeight(partial));
+		const cellLabel = `${availCount} Free (${partialCount} Partial)`;
 
 		const tooltipLines = [];
 		if (available.length > 0) {
-			tooltipLines.push(`<strong>${available.length} Available:</strong> ${available.map(n => escapeHtml(n)).join(', ')}`);
+			tooltipLines.push(`<strong>${availCount} Available:</strong> ${available.map(f => escapeHtml(f.name)).join(', ')}`);
 		}
 		if (partial.length > 0) {
-			tooltipLines.push(`<strong>${partial.length} Partially Available:</strong> ${partial.map(n => escapeHtml(n)).join(', ')}`);
+			tooltipLines.push(`<strong>${partialCount} Partially Available:</strong> ${partial.map(f => escapeHtml(f.name)).join(', ')}`);
 		}
 		if (unavailable.length > 0) {
-			tooltipLines.push(`<strong>${unavailable.length} Unavailable:</strong> ${unavailable.map(n => escapeHtml(n)).join(', ')}`);
+			tooltipLines.push(`<strong>${formatCount(sumWeight(unavailable))} Unavailable:</strong> ${unavailable.map(f => escapeHtml(f.name)).join(', ')}`);
 		}
 		const tooltipContent = tooltipLines.join('<br>');
 
