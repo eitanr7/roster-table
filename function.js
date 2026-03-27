@@ -508,9 +508,9 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		let partialWeight = 0;
 
 		sortedFacilitators.forEach(facilitator => {
-			if (facilitator.facRole === 'Admin') return;
+			if (facilitator.facRole === 'Admin' || facilitator.facRole === 'Training Facilitator') return;
 
-			const weight = facilitator.facRole === 'Training Facilitator' ? 0.5 : 1;
+			const weight = 1;
 
 			const shifts = shiftsByDate[dateStr] && shiftsByDate[dateStr][facilitator.email]
 				? shiftsByDate[dateStr][facilitator.email]
