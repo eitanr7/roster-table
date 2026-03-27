@@ -541,9 +541,15 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		if (isClosed) extraClass = ' roster-footer-cell-closed';
 		else if (isToday) extraClass = ' roster-footer-cell-today';
 
-		const { availableWeight, partialWeight } = availabilityByDate[dateStr];
-		const formatCount = n => n % 1 === 0 ? n.toFixed(0) : n.toFixed(1);
-		const cellLabel = `${formatCount(availableWeight)} Available (∼${formatCount(partialWeight)})`;
+		const dayOfWeek = new Date(dateStr + 'T00:00:00Z').getUTCDay();
+		const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+		let cellLabel = '';
+		if (!isWeekend) {
+			const { availableWeight, partialWeight } = availabilityByDate[dateStr];
+			const formatCount = n => n % 1 === 0 ? n.toFixed(0) : n.toFixed(1);
+			cellLabel = `${formatCount(availableWeight)} Available (∼${formatCount(partialWeight)})`;
+		}
 
 		htmlParts.push(`<th class="roster-footer-cell${extraClass}">${escapeHtml(cellLabel)}</th>`);
 	});
