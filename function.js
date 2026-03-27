@@ -501,39 +501,34 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		htmlParts.push(`</tr>`);
 	});
 	
-	// Compute availability per date
+	// Compute availability weights per date
 	const availabilityByDate = {};
 	sortedDates.forEach(dateStr => {
-		const available = [];
-		const partial = [];
-		const unavailable = [];
+		let availableWeight = 0;
+		let partialWeight = 0;
 
 		sortedFacilitators.forEach(facilitator => {
 			if (facilitator.facRole === 'Admin') return;
 
-			const isTraining = facilitator.facRole === 'Training Facilitator';
-			const weight = isTraining ? 0.5 : 1;
-			const displayName = isTraining ? facilitator.fullName + ' (T)' : facilitator.fullName;
+			const weight = facilitator.facRole === 'Training Facilitator' ? 0.5 : 1;
 
 			const shifts = shiftsByDate[dateStr] && shiftsByDate[dateStr][facilitator.email]
 				? shiftsByDate[dateStr][facilitator.email]
 				: [];
 
 			if (shifts.length === 0) {
-				available.push({ name: displayName, weight });
+				availableWeight += weight;
 			} else {
 				const hasAllDay = shifts.some(s =>
 					s.allDay === true || s.allDay === 'true'
 				);
-				if (hasAllDay) {
-					unavailable.push({ name: displayName, weight });
-				} else {
-					partial.push({ name: displayName, weight });
+				if (!hasAllDay) {
+					partialWeight += weight;
 				}
 			}
 		});
 
-		availabilityByDate[dateStr] = { available, partial, unavailable };
+		availabilityByDate[dateStr] = { availableWeight, partialWeight };
 	});
 
 	htmlParts.push(`</tbody>
@@ -546,27 +541,11 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 		if (isClosed) extraClass = ' roster-footer-cell-closed';
 		else if (isToday) extraClass = ' roster-footer-cell-today';
 
-		const { available, partial, unavailable } = availabilityByDate[dateStr];
-		const sumWeight = arr => arr.reduce((sum, f) => sum + f.weight, 0);
+		const { availableWeight, partialWeight } = availabilityByDate[dateStr];
 		const formatCount = n => n % 1 === 0 ? n.toFixed(0) : n.toFixed(1);
+		const cellLabel = `${formatCount(availableWeight)} Available (∼${formatCount(partialWeight)})`;
 
-		const availCount = formatCount(sumWeight(available));
-		const partialCount = formatCount(sumWeight(partial));
-		const cellLabel = `${availCount} Available (∼${partialCount})`;
-
-		const tooltipParts = [];
-		if (available.length > 0) {
-			tooltipParts.push(`<span class="popover-dot popover-dot-available"></span>${available.map(f => escapeHtml(f.name)).join(', ')}`);
-		}
-		if (partial.length > 0) {
-			tooltipParts.push(`<span class="popover-dot popover-dot-partial"></span>${partial.map(f => escapeHtml(f.name)).join(', ')}`);
-		}
-		if (unavailable.length > 0) {
-			tooltipParts.push(`<span class="popover-dot popover-dot-unavailable"></span>${unavailable.map(f => escapeHtml(f.name)).join(', ')}`);
-		}
-		const tooltipContent = tooltipParts.join('<span class="popover-sep"></span>');
-
-		htmlParts.push(`<th class="roster-footer-cell${extraClass}"><div class="roster-footer-date-wrapper">${escapeHtml(cellLabel)}<span class="roster-footer-tooltip">${tooltipContent}</span></div></th>`);
+		htmlParts.push(`<th class="roster-footer-cell${extraClass}">${escapeHtml(cellLabel)}</th>`);
 	});
 
 	htmlParts.push(`</tr></tfoot>
