@@ -449,7 +449,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				// Check if this facilitator is the lead facilitator for this shift
 				const isLeadFac = shift.leadFac && shift.facilitator && shift.leadFac.trim().toLowerCase() === shift.facilitator.trim().toLowerCase();
 				const leadFacIndicator = isLeadFac
-					? '<span class="shift-indicator-tooltip lead-fac-indicator" data-tooltip="Lead Fac" aria-label="Lead Fac"> ✪</span>'
+					? '<span class="shift-indicator-tooltip lead-fac-indicator" style="padding-left: 1rem;"data-tooltip="Lead Fac" aria-label="Lead Fac">✪</span>'
 					: '';
 				
 				// Check if shift times differ from master shift times
@@ -461,7 +461,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					const shiftEndMs = new Date(endDateTime).getTime();
 					if (shiftStartMs !== masterStartMs || shiftEndMs !== masterEndMs) {
 						differentTimeIndicator =
-							'<span class="shift-indicator-tooltip different-time-indicator" data-tooltip="Different time to master shift" aria-label="Different time to master shift"> ◑</span>';
+							'<span class="shift-indicator-tooltip different-time-indicator" style="padding-left: 1rem;"data-tooltip="Different time to master shift" aria-label="Different time to master shift">◑</span>';
 					}
 				}
 
