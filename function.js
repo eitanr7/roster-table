@@ -437,18 +437,20 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					htmlParts.push(`<div class="drop-accepted-title">DROPPED</div>`);
 				}
 				
-				// Build the overlap indicator HTML if needed
-				const overlapIndicatorHtml = isOverlapping 
-					? `<span class="overlap-indicator" title="This shift overlaps with another shift"></span>` 
+				// Build the overlap indicator HTML if needed (wrapper carries tooltip; inner keeps icon styles)
+				const overlapIndicatorHtml = isOverlapping
+					? `<span class="shift-indicator-tooltip" data-tooltip="This shift overlaps with another shift" aria-label="This shift overlaps with another shift"><span class="overlap-indicator"></span></span>`
 					: '';
 				// Orange arrow for published but not confirmed
-				const pendingConfirmationIndicatorHtml = isPublishedNotConfirmed 
-					? `<span class="pending-confirmation-indicator" title="Published, awaiting confirmation"></span>` 
+				const pendingConfirmationIndicatorHtml = isPublishedNotConfirmed
+					? `<span class="shift-indicator-tooltip" data-tooltip="Published, awaiting confirmation" aria-label="Published, awaiting confirmation"><span class="pending-confirmation-indicator"></span></span>`
 					: '';
 				
 				// Check if this facilitator is the lead facilitator for this shift
 				const isLeadFac = shift.leadFac && shift.facilitator && shift.leadFac.trim().toLowerCase() === shift.facilitator.trim().toLowerCase();
-				const leadFacIndicator = isLeadFac ? '<span class="lead-fac-indicator" title="Lead Fac"> ✪</span>' : '';
+				const leadFacIndicator = isLeadFac
+					? '<span class="shift-indicator-tooltip lead-fac-indicator" data-tooltip="Lead Fac" aria-label="Lead Fac"> ✪</span>'
+					: '';
 				
 				// Check if shift times differ from master shift times
 				let differentTimeIndicator = '';
@@ -458,7 +460,8 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					const shiftStartMs = new Date(startDateTime).getTime();
 					const shiftEndMs = new Date(endDateTime).getTime();
 					if (shiftStartMs !== masterStartMs || shiftEndMs !== masterEndMs) {
-						differentTimeIndicator = '<span class="different-time-indicator" title="Different time to master shift"> ◑</span>';
+						differentTimeIndicator =
+							'<span class="shift-indicator-tooltip different-time-indicator" data-tooltip="Different time to master shift" aria-label="Different time to master shift"> ◑</span>';
 					}
 				}
 
