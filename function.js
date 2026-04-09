@@ -452,6 +452,11 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					? '<span class="shift-indicator-tooltip lead-fac-indicator" style="padding-left: 0.2rem;" data-tooltip="Lead Fac" aria-label="Lead Fac">✪</span>'
 					: '';
 				
+				// Check if calendar event is out of sync
+				const calendarOutOfSyncIndicatorHtml = shift.needsCalendarResync === 'needsResync'
+					? `<span class="shift-indicator-tooltip" data-tooltip="Calendar Event is out of sync!" aria-label="Calendar Event is out of sync!">⚠</span>`
+					: '';
+
 				// Check if shift times differ from master shift times
 				let differentTimeIndicator = '';
 				if (shift.mastershiftStart && shift.mastershiftEnd && startDateTime && endDateTime) {
@@ -468,11 +473,11 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				// Only show time for non-allDay shifts
 				if (!isAllDay) {
 					const notesIndicator = notesText ? ' ⓘ' : '';
-					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${differentTimeIndicator}${leadFacIndicator}${notesIndicator}</span>${overlapIndicatorHtml}${pendingConfirmationIndicatorHtml}</div>`);
+					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">${escapeHtml(startTimeFormatted)} - ${escapeHtml(endTimeFormatted)}${differentTimeIndicator}${leadFacIndicator}${notesIndicator}</span>${overlapIndicatorHtml}${pendingConfirmationIndicatorHtml}${calendarOutOfSyncIndicatorHtml}</div>`);
 				} else {
 					// For allDay shifts, just show "ALL DAY"
 					const notesIndicator = notesText ? ' ⓘ' : '';
-					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">ALL DAY${leadFacIndicator}${notesIndicator}</span>${overlapIndicatorHtml}${pendingConfirmationIndicatorHtml}</div>`);
+					htmlParts.push(`<div class="shift-time-row"><span class="shift-time">ALL DAY${leadFacIndicator}${notesIndicator}</span>${overlapIndicatorHtml}${pendingConfirmationIndicatorHtml}${calendarOutOfSyncIndicatorHtml}</div>`);
 				}
 				
 				// Show content based on shift type
