@@ -455,7 +455,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				
 				// Check if calendar event is out of sync
 				const calendarOutOfSyncIndicatorHtml = shift.needsCalendarResync === 'needsResync'
-					? `<span class="shift-indicator-tooltip" data-tooltip="Calendar Event is out of sync!" aria-label="Calendar Event is out of sync!">⚠</span>`
+					? `<span class="shift-indicator-tooltip" data-tooltip="Calendar Event is out of sync!" aria-label="Calendar Event is out of sync!">⚠️</span>`
 					: '';
 
 				// Check if shift times differ from master shift times
