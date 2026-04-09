@@ -424,8 +424,9 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 				// Published but not yet confirmed
 				const isPublishedNotConfirmed = isPublished && !isConfirmed;
 				const publishedUnconfirmedClass = isPublishedNotConfirmed ? ' shift-published-unconfirmed' : '';
-				
-				htmlParts.push(`<div class="${shiftClass}${hoverClass}${overlapClass}${publishedUnconfirmedClass}">`);
+				const calendarOutOfSyncClass = shift.needsCalendarResync === 'needsResync' ? ' shift-calendar-out-of-sync' : '';
+
+				htmlParts.push(`<div class="${shiftClass}${hoverClass}${overlapClass}${publishedUnconfirmedClass}${calendarOutOfSyncClass}">`);
 				
 				// Show "DROP REQUESTED" for dropped shifts that haven't been accepted yet
 				if (isDropped && !isDropAccepted) {
