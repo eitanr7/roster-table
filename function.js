@@ -207,9 +207,21 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 	
 	// Sort dates
 	const sortedDates = Array.from(allDates).sort();
-	
-	// Sort facilitators by rosterOrder (numeric, smallest first, empty/missing at bottom)
+
+	// Pre-compute which facilitators have any out-of-sync shift
+	const outOfSyncFacilitators = new Set();
+	regularShifts.forEach(shift => {
+		if (shift.needsCalendarResync === 'needsResync' && shift.facilitator) {
+			outOfSyncFacilitators.add(shift.facilitator);
+		}
+	});
+
+	// Sort facilitators: out-of-sync first, then by rosterOrder
 	const sortedFacilitators = [...facilitatorsArray].sort((a, b) => {
+		const aOutOfSync = outOfSyncFacilitators.has(a.email) ? 0 : 1;
+		const bOutOfSync = outOfSyncFacilitators.has(b.email) ? 0 : 1;
+		if (aOutOfSync !== bOutOfSync) return aOutOfSync - bOutOfSync;
+
 		const aNum = a.rosterOrder != null && a.rosterOrder !== '' ? Number(a.rosterOrder) : null;
 		const bNum = b.rosterOrder != null && b.rosterOrder !== '' ? Number(b.rosterOrder) : null;
 		const aValid = aNum !== null && !isNaN(aNum);
@@ -298,7 +310,7 @@ window.function = function (facilitatorsData, shiftsData, startDate, endDate, lo
 					<div class="facilitator-info">
 						${avatarHtml}
 						<div class="facilitator-details">
-							<span>${escapeHtml(facilitator.fullName)}</span>${facilitator.facRole ? `<span class="facilitator-role">${escapeHtml(facilitator.facRole)}</span>` : ''}<span class="facilitator-hours">${hoursDisplay}</span>
+							<span>${escapeHtml(facilitator.fullName)}${outOfSyncFacilitators.has(facilitator.email) ? ' <span class="shift-indicator-tooltip" data-tooltip="Calendar Event is out of sync!" aria-label="Calendar Event is out of sync!">⚠️</span>' : ''}</span>${facilitator.facRole ? `<span class="facilitator-role">${escapeHtml(facilitator.facRole)}</span>` : ''}<span class="facilitator-hours">${hoursDisplay}</span>
 						</div>
 					</div>
 				</td>`);
